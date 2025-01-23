@@ -1,0 +1,54 @@
+# Xcode
+*.xcworkspace
+*.xcuserstate
+*.xcuserdata
+*.xccheckout
+*.xcodeproj/project.xcworkspace
+*.xcodeproj/xcuserdata
+*.xcodeproj/project.xcuserstate
+
+# Build artifacts
+DerivedData/
+build/
+*.ipa
+*.app
+
+# macOS-specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Pods (CocoaPods)
+Pods/
+Podfile.lock
+
+# XcodeGen generated files
+globoplay-desafio-ios.xcodeproj
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Logs
+*.log
+
+# Temporary files
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# Editor-specific files
+.idea/
+.vscode/
+*.iml
+
+# Other
+.env
