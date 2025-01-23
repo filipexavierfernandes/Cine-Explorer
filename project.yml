@@ -6,7 +6,7 @@ options:
   createIntermediateGroups: true
 settings:
   base:
-    SWIFT_VERSION: '5.0'
+    SWIFT_VERSION: '5.5'  # Ajuste para a sua versão do Swift
 
 targets:
   globoplay-desafio-ios:
@@ -19,7 +19,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: Sources/globoplay-desafio-ios/Info.plist
         UILaunchStoryboardName: LaunchScreen
-        
+
   globoplay-desafio-ios-tests:
     type: bundle.unit-test
     platform: iOS
@@ -35,5 +35,7 @@ schemes:
     build:
       targets:
         globoplay-desafio-ios: all
+  globoplay-desafio-ios-tests:
+    build:
+      targets:
         globoplay-desafio-ios-tests: all
-
