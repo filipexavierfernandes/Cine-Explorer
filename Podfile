@@ -5,7 +5,7 @@ target 'globoplay-desafio-ios' do
   use_frameworks!
 
   # Dependências do app
-  pod 'Alamofire', '~> 5.7'
+  pod 'SDWebImage', '~> 5.20.0'
 
   target 'globoplay-desafio-ios-tests' do
     inherit! :search_paths
