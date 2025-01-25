@@ -9,35 +9,57 @@ import Foundation
 import Combine
 
 class FavoritesViewModel: ObservableObject {
-    @Published var favoriteFilms: [Film] = []
+    @Published var favoriteMedia: [MediaDetails] = []
     @Published var error: FilmServiceError?
     private let favoritesService: FavoritesService
-    private let filmService: FilmService
+    private let mediaService: MediaService
     private var cancellables = Set<AnyCancellable>()
+    private var coordinator: Coordinator
     
-    init(favoritesService: FavoritesService, filmService: FilmService) {
+    init(favoritesService: FavoritesService, filmService: MediaService, coordinator: Coordinator) {
         self.favoritesService = favoritesService
-        self.filmService = filmService
+        self.mediaService = filmService
+        self.coordinator = coordinator
     }
 
     func fetchFavorites() {
         let favoriteItems = favoritesService.getFavorites()
-        favoriteFilms = []
-        
+        favoriteMedia = []
+
         favoriteItems.forEach { item in
-            filmService.fetchDetails(id: item.id, type: item.mediaType)
+            mediaService.fetchDetails(id: item.id, type: item.mediaType)
                 .sink { completion in
                     switch completion {
                     case .failure(let error):
                         self.error = error
-                        print("Erro ao obter filme favorito: \(error)")
+                        print("Erro ao obter detalhes do favorito: \(error)")
                     case .finished:
                         break
                     }
-                } receiveValue: { [weak self] film in
-                    guard let favFilm = film else { return }
-                    self?.favoriteFilms.append(favFilm)
-                }.store(in: &cancellables)
+                } receiveValue: { [weak self] media in
+                    self?.favoriteMedia.append(media)
+                }
+                .store(in: &cancellables)
+        }
+    }
+    
+    func navigateToDetail(mediaDetails: MediaDetails) {
+        var mediaType: MediaType = .movie
+        switch mediaDetails {
+        case .movie:
+            mediaType = .movie
+        case .tvShow:
+            mediaType = .tvShow
+        }
+        coordinator.navigateToDetails(id: getMediaId(from: mediaDetails), mediaType: mediaType)
+    }
+    
+    private func getMediaId(from mediaDetails: MediaDetails) -> Int {
+        switch mediaDetails {
+        case .movie(let movie):
+            return movie.id ?? Int()
+        case .tvShow(let tvShow):
+            return tvShow.id ?? Int()
         }
     }
 }

@@ -12,13 +12,13 @@ class HomeViewModel: ObservableObject {
     @Published var sections: [HomeSection] = []
     @Published var error: FilmServiceError?
     private var cancellables = Set<AnyCancellable>()
-    private let service: FilmServiceProtocol
-    private let coordinator: HomeCoordinatorProtocol
+    private let service: MediaServiceProtocol
+    private let coordinator: CoordinatorProtocol
 
-    init(service: FilmServiceProtocol = FilmService(), coordinator: HomeCoordinatorProtocol) {
-            self.service = service
-            self.coordinator = coordinator
-        }
+    init(service: MediaServiceProtocol = MediaService(), coordinator: CoordinatorProtocol) {
+        self.service = service
+        self.coordinator = coordinator
+    }
 
     func fetchData() {
         service.fetchData()

@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Foundation
 import Combine
 
 class FavoritesViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -40,6 +39,10 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
         super.viewDidLoad()
         setupView()
         bindViewModel()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
         viewModel.fetchFavorites()
     }
 
@@ -56,38 +59,41 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
     }
 
     private func bindViewModel() {
-        viewModel.$favoriteFilms
-            .receive(on: DispatchQueue.main) // Garante que a atualização da UI ocorra na main thread
-            .sink { [weak self] films in
+        viewModel.$favoriteMedia
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] mediaDetails in
                 self?.collectionView.reloadData()
             }
             .store(in: &cancellables)
-        
+
         viewModel.$error.sink { error in
-            guard let error = error else {return}
+            guard let error = error else { return }
             print(error)
         }.store(in: &cancellables)
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.favoriteFilms.count
+        return viewModel.favoriteMedia.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilmCell.reuseIdentifier, for: indexPath) as? FilmCell else {
             return UICollectionViewCell()
         }
-        let film = viewModel.favoriteFilms[indexPath.row]
-        cell.configure(with: film)
+
+        let mediaDetails = viewModel.favoriteMedia[indexPath.row]
+
+        switch mediaDetails {
+        case .movie(let movie):
+            cell.configure(with: movie)
+        case .tvShow(let tvShow):
+            cell.configure(with: tvShow)
+        }
         return cell
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let film = viewModel.favoriteFilms[indexPath.row]
-        let favoriteItems = FavoritesService().getFavorites()
-        let mediaType = favoriteItems.first { $0.id == film.id }?.mediaType ?? .movie
-        let detailViewModel = DetailViewModel(filmId: film.id ?? .zero, mediaType: mediaType, filmService: FilmService(), favoritesService: FavoritesService())
-        let detailViewController = DetailViewController(viewModel: detailViewModel)
-        navigationController?.pushViewController(detailViewController, animated: true)
+        let mediaDetails = viewModel.favoriteMedia[indexPath.row]
+        viewModel.navigateToDetail(mediaDetails: mediaDetails)
     }
 }

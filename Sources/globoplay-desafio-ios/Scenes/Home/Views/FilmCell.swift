@@ -55,8 +55,23 @@ class FilmCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configure(with film: Film) {
-        label.text = film.title
-        imageView.sd_setImage(with: URL(string: film.posterURL ?? String()), placeholderImage: UIImage(named: "placeholder"))
+    func configure(with movie: Movie) {
+        label.text = movie.title ?? movie.original_title
+        if let posterPath = movie.poster_path {
+            let posterURL = Constants.imageBaseURL + posterPath
+            imageView.sd_setImage(with: URL(string: posterURL), placeholderImage: UIImage(named: "placeholder"))
+        } else {
+            imageView.image = UIImage(named: "placeholder")
+        }
+    }
+
+    func configure(with tvShow: TVShow) {
+        label.text = tvShow.name ?? tvShow.original_name
+        if let posterPath = tvShow.poster_path {
+            let posterURL = Constants.imageBaseURL + posterPath
+            imageView.sd_setImage(with: URL(string: posterURL), placeholderImage: UIImage(named: "placeholder"))
+        } else {
+            imageView.image = UIImage(named: "placeholder")
+        }
     }
 }

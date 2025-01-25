@@ -11,7 +11,7 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    var coordinator: HomeCoordinator?
+    var coordinator: Coordinator?
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -21,7 +21,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
         
         let navigationController = UINavigationController()
-        coordinator = HomeCoordinator(navigationController: navigationController)
+        navigationController.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController.navigationBar.shadowImage = UIImage()
+        navigationController.navigationBar.isTranslucent = true
+        navigationController.navigationBar.tintColor = .white
+        navigationController.navigationBar.barStyle = .black
+        
+        coordinator = Coordinator(navigationController: navigationController)
         coordinator?.start()
 
         window = UIWindow(frame: UIScreen.main.bounds)

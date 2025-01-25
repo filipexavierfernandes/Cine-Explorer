@@ -14,6 +14,16 @@ class DetailViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
     
     // UI Elements
+    private let scrollView = UIScrollView()
+    private let contentView = UIView()
+    private let containerView: UIView = {
+        let view = UIView()
+        return view
+    }()
+    private let detailsView = DetailsInfoView()
+    private var relatedFilmsView = RelatedFilmsView()
+    private var currentView: UIView?
+    
     private let headerView: UIView = {
         let view = UIView()
         view.clipsToBounds = true
@@ -27,14 +37,20 @@ class DetailViewController: UIViewController {
     }()
     
     private let gradientLayer: CAGradientLayer = {
-            let layer = CAGradientLayer()
-            layer.colors = [
-                UIColor.clear.cgColor,
-                UIColor(hex: "#282828").cgColor
-            ]
-            layer.locations = [0.0, 1.0]
-            return layer
-        }()
+        let layer = CAGradientLayer()
+        layer.colors = [
+            UIColor.clear.cgColor,
+            Colors.darkGray.cgColor
+        ]
+        layer.locations = [0.0, 1.0]
+        return layer
+    }()
+    
+    private let gradientView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     
     private let solidImageView: UIImageView = {
         let imageView = UIImageView()
@@ -76,30 +92,16 @@ class DetailViewController: UIViewController {
         let segmentedControl = UISegmentedControl(items: ["Assista Também", "Detalhes"])
         segmentedControl.selectedSegmentIndex = 1
         segmentedControl.backgroundColor = UIColor(hex: "#282828")
-        segmentedControl.tintColor = .clear // Remove o tint color
+        segmentedControl.tintColor = .clear
         
-        // Customização visual do segmented control
         segmentedControl.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.gray], for: .normal)
         segmentedControl.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.white], for: .selected)
         segmentedControl.setTitleTextAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17)], for: .normal)
         segmentedControl.setTitleTextAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 17)], for: .selected)
-        
-        let underlineLayer = CALayer()
-        underlineLayer.frame = CGRect(x: 0, y: 42, width: segmentedControl.bounds.width / CGFloat(segmentedControl.numberOfSegments), height: 2)
-        underlineLayer.backgroundColor = UIColor.white.cgColor
-        segmentedControl.layer.addSublayer(underlineLayer)
+        segmentedControl.isUserInteractionEnabled = true
+
         return segmentedControl
     }()
-    
-    private let scrollView = UIScrollView()
-    private let contentView = UIView()
-    private let containerView: UIView = {
-        let view = UIView()
-        return view
-    }()
-    private let detailsView = DetailsInfoView()
-    private var relatedFilmsView = RelatedFilmsView()
-    private var currentView: UIView?
     
     init(viewModel: DetailViewModel) {
         self.viewModel = viewModel
@@ -113,31 +115,38 @@ class DetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+        setBackButton()
         bindViewModel()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        gradientLayer.frame = contentView.bounds
-        updateSegmentedControlUnderline()
+        gradientLayer.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: segmentedControl.frame.origin.y)
     }
     
-    private func updateSegmentedControlUnderline(){
-        if let underlineLayer = segmentedControl.layer.sublayers?.first {
-            UIView.animate(withDuration: 0.3) {
-                underlineLayer.frame = CGRect(x: CGFloat(self.segmentedControl.selectedSegmentIndex) * self.segmentedControl.bounds.width / CGFloat(self.segmentedControl.numberOfSegments), y: 42, width: self.segmentedControl.bounds.width / CGFloat(self.segmentedControl.numberOfSegments), height: 2)
-            }
-        }
+    private func setupColors() {
+        headerImageView.backgroundColor = .gray
+        solidImageView.backgroundColor = .lightGray
+        detailsView.backgroundColor = Colors.darkGray
+    }
+    
+    private func setBackButton() {
+        let backButton = UIBarButtonItem(image: UIImage(named: "back"), style: .plain, target: self, action: #selector(backButtonTapped))
+        navigationItem.leftBarButtonItem = backButton
     }
     
     private func setupView() {
         view.backgroundColor = Colors.midGray
-
+        
+        edgesForExtendedLayout = .top
+        extendedLayoutIncludesOpaqueBars = true
+        
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
+        
+        contentView.addSubview(gradientView)
         contentView.addSubview(headerView)
         headerView.addSubview(headerImageView)
-        headerImageView.layer.addSublayer(gradientLayer)
         headerView.addSubview(solidImageView)
         headerView.addSubview(titleLabel)
         headerView.addSubview(subtitleLabel)
@@ -154,6 +163,7 @@ class DetailViewController: UIViewController {
         headerView.translatesAutoresizingMaskIntoConstraints = false
         headerImageView.translatesAutoresizingMaskIntoConstraints = false
         solidImageView.translatesAutoresizingMaskIntoConstraints = false
+        gradientView.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -165,9 +175,10 @@ class DetailViewController: UIViewController {
 
         let buttonHeight: CGFloat = 50
         let imageSize: CGFloat = 180
+        let topSpacing: CGFloat = 150
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -177,7 +188,12 @@ class DetailViewController: UIViewController {
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-
+            
+            gradientView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            gradientView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            gradientView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            gradientView.bottomAnchor.constraint(equalTo: segmentedControl.topAnchor),
+            
             headerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -187,7 +203,7 @@ class DetailViewController: UIViewController {
             headerImageView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
             headerImageView.heightAnchor.constraint(equalToConstant: 250),
 
-            solidImageView.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -50),
+            solidImageView.centerYAnchor.constraint(equalTo: contentView.topAnchor, constant: topSpacing),
             solidImageView.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             solidImageView.heightAnchor.constraint(equalToConstant: imageSize),
             solidImageView.widthAnchor.constraint(equalToConstant: imageSize * 0.70),
@@ -214,16 +230,21 @@ class DetailViewController: UIViewController {
             favoriteButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             favoriteButton.widthAnchor.constraint(equalTo: headerView.widthAnchor, multiplier: 0.45),
             favoriteButton.heightAnchor.constraint(equalToConstant: buttonHeight),
+            
+            gradientView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            gradientView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            gradientView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            gradientView.bottomAnchor.constraint(equalTo: segmentedControl.topAnchor),
 
             segmentedControl.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 24),
-            segmentedControl.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            segmentedControl.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            segmentedControl.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            segmentedControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             segmentedControl.heightAnchor.constraint(equalToConstant: 45),
-
+            
             containerView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 0),
-            containerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            containerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            containerView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: 0),
+            containerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            containerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            containerView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: 0),
            
             detailsView.topAnchor.constraint(equalTo: containerView.topAnchor),
             detailsView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
@@ -231,20 +252,29 @@ class DetailViewController: UIViewController {
             detailsView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
         
-        headerImageView.backgroundColor = .gray
-        solidImageView.backgroundColor = .lightGray
-        detailsView.backgroundColor = Colors.darkGray
+        segmentedControl.addTarget(self, action: #selector(segmentedControlValueChanged), for: .valueChanged)
+        favoriteButton.addTarget(self, action: #selector(favoriteTapped), for: .touchUpInside)
+        setupColors()
         currentView = detailsView
+        
+        view.layoutIfNeeded()
+        gradientLayer.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: segmentedControl.frame.origin.y)
+        gradientView.layer.insertSublayer(gradientLayer, at: 0)
+    }
+    
+    @objc private func backButtonTapped() {
+        viewModel.tapBackButton()
     }
     
     @objc private func segmentedControlValueChanged(_ sender: UISegmentedControl) {
-        updateSegmentedControlUnderline()
-
         containerView.subviews.forEach { $0.removeFromSuperview() }
 
         if sender.selectedSegmentIndex == 0 {
-            currentView = relatedFilmsView
+            viewModel.fetchRelatedMedia()
+            detailsView.removeFromSuperview()
         } else {
+            relatedFilmsView.removeFromSuperview()
+            guard let mediaDetails = viewModel.mediaDetails else { return }
             currentView = detailsView
         }
         
@@ -275,26 +305,45 @@ class DetailViewController: UIViewController {
     }
     
     private func bindViewModel() {
-        viewModel.$film
+        viewModel.$mediaDetails
             .compactMap { $0 }
-            .sink { [weak self] film in
-                let posterUrl = film.posterURL ?? String()
-                DispatchQueue.main.async {
-                    self?.titleLabel.text = film.title
-                    self?.subtitleLabel.text = film.name
-                    self?.descriptionLabel.text = film.overview
-                    self?.headerImageView.sd_setImage(with: URL(string: posterUrl), placeholderImage: UIImage(named: "placeholder")) { image, error, cacheType, imageURL in
-                        if let image = image {
-                            let blurredImage = image.applyBlur(radius: 10)
-                            self?.headerImageView.image = blurredImage
-                        }
+            .sink { [weak self] mediaDetails in
+                guard let self = self else { return }
+                switch mediaDetails {
+                case .movie(let movie):
+                    let posterUrl = Constants.imageBaseURL + (movie.poster_path ?? String())
+                    DispatchQueue.main.async {
+                        self.titleLabel.text = movie.title
+                        self.subtitleLabel.text = movie.original_title
+                        self.descriptionLabel.text = movie.overview
+                        self.headerImageView.image = UIImage(named: "placeholder")?.applyBlur(radius: 10)
+                        self.headerImageView.sd_setImage(with: URL(string: posterUrl), completed: { image, error, cacheType, imageURL in
+                            if let image = image {
+                                self.headerImageView.image = image.applyBlur(radius: 10)
+                            }
+                        })
+                        self.solidImageView.sd_setImage(with: URL(string: posterUrl), completed: nil)
+                        self.detailsView.configure(with: movie)
                     }
-                    self?.solidImageView.sd_setImage(with: URL(string: posterUrl), completed: nil)
-                    self?.detailsView.configure(with: film)
+                case .tvShow(let tvShow):
+                    let posterUrl = Constants.imageBaseURL + (tvShow.poster_path ?? String())
+                    DispatchQueue.main.async {
+                        self.titleLabel.text = tvShow.name
+                        self.subtitleLabel.text = tvShow.original_name
+                        self.descriptionLabel.text = tvShow.overview
+                        self.headerImageView.image = UIImage(named: "placeholder")?.applyBlur(radius: 10)
+                        self.headerImageView.sd_setImage(with: URL(string: posterUrl), completed: { image, error, cacheType, imageURL in
+                            if let image = image {
+                                self.headerImageView.image = image.applyBlur(radius: 10)
+                            }
+                        })
+                        self.solidImageView.sd_setImage(with: URL(string: posterUrl), completed: nil)
+                        self.detailsView.configure(with: tvShow)
+                    }
                 }
             }
             .store(in: &cancellables)
-        
+
         viewModel.$isFavorite
             .sink { [weak self] isFavorite in
                 DispatchQueue.main.async {
@@ -304,7 +353,24 @@ class DetailViewController: UIViewController {
                 }
             }
             .store(in: &cancellables)
-        }
+        
+        viewModel.$relatedMedia
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] relatedMedia in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.currentView = self.detailsView
+                }
+            }
+            .store(in: &cancellables)
+
+        viewModel.$relatedMediaError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] error in
+                guard let self = self, let error = error else {return}
+                print("erro: \(error)")
+            }.store(in: &cancellables)
+    }
         
     @objc private func favoriteTapped() {
         viewModel.toggleFavorite()

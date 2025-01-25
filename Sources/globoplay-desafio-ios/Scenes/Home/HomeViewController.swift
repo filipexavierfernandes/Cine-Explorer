@@ -66,7 +66,7 @@ class HomeViewController: UIViewController {
         }
     }
     
-    init(service: FilmService, coordinator: HomeCoordinator) {
+    init(service: MediaService, coordinator: Coordinator) {
         self.viewModel = HomeViewModel(service: service, coordinator: coordinator)
         super.init(nibName: nil, bundle: nil)
     }
@@ -160,7 +160,7 @@ extension HomeViewController: UICollectionViewDataSource {
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return isLoading ? 5 : viewModel?.sections[section].films.count ?? 0
+        return isLoading ? 5 : viewModel?.sections[section].media.count ?? 0
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -173,8 +173,16 @@ extension HomeViewController: UICollectionViewDataSource {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilmCell.reuseIdentifier, for: indexPath) as? FilmCell else {
                 return UICollectionViewCell()
             }
-            guard let film = viewModel?.sections[indexPath.section].films[indexPath.row] else { return  UICollectionViewCell() }
-            cell.configure(with: film)
+
+            guard let mediaDetails = viewModel?.sections[indexPath.section].media[indexPath.row] else {
+                return UICollectionViewCell()
+            }
+            switch mediaDetails {
+            case .movie(let movie):
+                cell.configure(with: movie)
+            case .tvShow(let tvShow):
+                cell.configure(with: tvShow)
+            }
             return cell
         }
     }
@@ -204,9 +212,19 @@ extension HomeViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if !isLoading {
             let section =  viewModel?.sections[indexPath.section]
-            let selected = section?.films[indexPath.row]
+            let selected = section?.media[indexPath.row]
             let mediaType = section?.mediaType ?? .none
-            self.viewModel?.navigateToDetails(id: selected?.id ?? .zero, mediaType: mediaType)
+            
+            switch selected {
+            case .movie(let movie):
+                self.viewModel?.navigateToDetails(id: movie.id ?? .zero, mediaType: mediaType)
+            case .tvShow(let tvShow):
+                self.viewModel?.navigateToDetails(id: tvShow.id ?? .zero, mediaType: mediaType)
+            case .none:
+                break
+            }
+            
+            
         }
     }
 }

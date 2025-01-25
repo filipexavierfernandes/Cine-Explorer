@@ -8,12 +8,13 @@
 import Foundation
 import UIKit
 
-protocol HomeCoordinatorProtocol: AnyObject {
+protocol CoordinatorProtocol: AnyObject {
     func navigateToFavorites()
     func navigateToDetails(id: Int, mediaType: MediaType)
+    func popViewController()
 }
 
-class HomeCoordinator: HomeCoordinatorProtocol {
+class Coordinator: CoordinatorProtocol {
     private let navigationController: UINavigationController
 
     init(navigationController: UINavigationController) {
@@ -21,20 +22,24 @@ class HomeCoordinator: HomeCoordinatorProtocol {
     }
     
     func start() {
-            let service = FilmService()
+            let service = MediaService()
             let homeViewController = HomeViewController(service: service, coordinator: self)
             navigationController.pushViewController(homeViewController, animated: true)
         }
 
     func navigateToFavorites() {
-        let viewModel = FavoritesViewModel(favoritesService: FavoritesService(), filmService: FilmService())
+        let viewModel = FavoritesViewModel(favoritesService: FavoritesService(), filmService: MediaService(), coordinator: self)
         let favoritesViewController = FavoritesViewController(viewModel: viewModel)
         navigationController.pushViewController(favoritesViewController, animated: true)
     }
     
     func navigateToDetails(id: Int, mediaType: MediaType) {
-        let viewModel = DetailViewModel(filmId: id, mediaType: mediaType, filmService: FilmService(), favoritesService: FavoritesService())
+        let viewModel = DetailViewModel(filmId: id, mediaType: mediaType, filmService: MediaService(), favoritesService: FavoritesService(), coordinator: self)
         let detailViewController = DetailViewController(viewModel: viewModel)
         navigationController.pushViewController(detailViewController, animated: true)
+    }
+    
+    func popViewController() {
+        navigationController.popViewController(animated: true)
     }
 }

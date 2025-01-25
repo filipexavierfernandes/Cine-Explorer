@@ -9,37 +9,74 @@ import UIKit
 import Combine
 
 class DetailViewModel: ObservableObject {
-    @Published var film: Film?
+    @Published var mediaDetails: MediaDetails?
+    @Published var mediaType: MediaType
     @Published var isFavorite: Bool = false
     @Published var error: FilmServiceError?
+    @Published var relatedMedia: [MediaDetails] = []
+    @Published var relatedMediaError: FilmServiceError?
+    
     let filmId: Int
-    let mediaType: MediaType
-    private let filmService: FilmService
+    private let mediaService: MediaService
     private let favoritesService: FavoritesService
     private var cancellables = Set<AnyCancellable>()
-    
-    init(filmId: Int, mediaType: MediaType, filmService: FilmService, favoritesService: FavoritesService) {
+    private let coordinator: CoordinatorProtocol
+
+    init(filmId: Int, mediaType: MediaType, filmService: MediaService, favoritesService: FavoritesService, coordinator: CoordinatorProtocol) {
         self.filmId = filmId
         self.mediaType = mediaType
-        self.filmService = filmService
+        self.mediaService = filmService
         self.favoritesService = favoritesService
+        self.coordinator = coordinator
         checkIfIsFavorite()
-        fetchFilmDetails()
+        fetchMediaDetails()
+    }
+
+    func fetchMediaDetails() {
+        mediaService.fetchDetails(id: filmId, type: mediaType)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .failure(let error):
+                    print("Erro ao buscar detalhes: \(error)")
+                    self.error = error
+                case .finished:
+                    print("Fetch details finished")
+                }
+            }, receiveValue: { mediaDetails in
+                self.mediaDetails = mediaDetails
+            })
+            .store(in: &cancellables)
     }
     
-    private func fetchFilmDetails() {
-        filmService.fetchDetails(id: filmId, type: mediaType)
+    func fetchRelatedMedia() {
+        guard let mediaDetails = self.mediaDetails else { return }
+        let mediaId = getMediaId(from: mediaDetails)
+        let mediaType = self.mediaType
+
+        mediaService.fetchRelated(id: mediaId, type: mediaType)
+            .receive(on: DispatchQueue.main)
             .sink { completion in
                 switch completion {
                 case .failure(let error):
-                    self.error = error
-                    print("Erro ao obter detalhes do filme: \(error)")
+                    print("Erro ao buscar relacionados: \(error)")
+                    self.relatedMediaError = error
                 case .finished:
-                    break
+                    print("Busca de relacionados finalizada")
                 }
-            } receiveValue: { movie in
-                self.film = movie
-            }.store(in: &cancellables)
+            } receiveValue: { relatedMedia in
+                self.relatedMedia = relatedMedia
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func getMediaId(from mediaDetails: MediaDetails) -> Int {
+        switch mediaDetails {
+        case .movie(let movie):
+            return movie.id ?? 0
+        case .tvShow(let tvShow):
+            return tvShow.id ?? 0
+        }
     }
 
     func toggleFavorite() {
@@ -50,8 +87,12 @@ class DetailViewModel: ObservableObject {
         }
         isFavorite.toggle()
     }
-    
-    private func checkIfIsFavorite(){
+
+    func tapBackButton() {
+        coordinator.popViewController()
+    }
+
+    private func checkIfIsFavorite() {
         isFavorite = favoritesService.isFavorite(itemId: filmId, mediaType: mediaType)
     }
 }
