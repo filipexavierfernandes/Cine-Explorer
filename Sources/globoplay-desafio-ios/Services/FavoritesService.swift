@@ -19,23 +19,23 @@ class FavoritesService {
         return favorites
     }
 
-    func saveFavorite(itemId: Int) {
+    func saveFavorite(itemId: Int, mediaType: MediaType) {
         var favorites = getFavorites()
-        let newItem = FavoriteItem(id: itemId)
+        let newItem = FavoriteItem(id: itemId, mediaType: mediaType)
         if !favorites.contains(newItem) {
             favorites.append(newItem)
             save(favorites: favorites)
         }
     }
 
-    func removeFavorite(itemId: Int) {
+    func removeFavorite(itemId: Int, mediaType: MediaType) {
         var favorites = getFavorites()
-        favorites.removeAll(where: { $0.id == itemId })
+        favorites.removeAll(where: { $0.id == itemId && $0.mediaType == mediaType})
         save(favorites: favorites)
     }
 
-    func isFavorite(itemId: Int) -> Bool {
-        return getFavorites().contains(where: { $0.id == itemId })
+    func isFavorite(itemId: Int, mediaType: MediaType) -> Bool {
+        return getFavorites().contains(where: { $0.id == itemId && $0.mediaType == mediaType })
     }
 
     private func save(favorites: [FavoriteItem]) {

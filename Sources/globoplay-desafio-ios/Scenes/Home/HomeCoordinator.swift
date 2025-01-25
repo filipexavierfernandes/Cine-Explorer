@@ -10,7 +10,7 @@ import UIKit
 
 protocol HomeCoordinatorProtocol: AnyObject {
     func navigateToFavorites()
-    func navigateToDetails(id: Int)
+    func navigateToDetails(id: Int, mediaType: MediaType)
 }
 
 class HomeCoordinator: HomeCoordinatorProtocol {
@@ -32,8 +32,8 @@ class HomeCoordinator: HomeCoordinatorProtocol {
         navigationController.pushViewController(favoritesViewController, animated: true)
     }
     
-    func navigateToDetails(id: Int) {
-        let viewModel = DetailViewModel(filmId: id, filmService: FilmService(), favoritesService: FavoritesService())
+    func navigateToDetails(id: Int, mediaType: MediaType) {
+        let viewModel = DetailViewModel(filmId: id, mediaType: mediaType, filmService: FilmService(), favoritesService: FavoritesService())
         let detailViewController = DetailViewController(viewModel: viewModel)
         navigationController.pushViewController(detailViewController, animated: true)
     }

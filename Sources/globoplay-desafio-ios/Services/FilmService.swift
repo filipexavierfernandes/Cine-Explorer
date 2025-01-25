@@ -10,12 +10,14 @@ import Combine
 
 protocol FilmServiceProtocol {
     func fetchData() -> AnyPublisher<[HomeSection], FilmServiceError>
-    func fetchMovie(id: Int) -> AnyPublisher<Film, FilmServiceError>
+    func fetchDetails(id: Int, type: MediaType) -> AnyPublisher<Film?, FilmServiceError>
 }
 
 final class FilmService: FilmServiceProtocol {
+    
+    func fetch(endpoint: String) -> AnyPublisher<([Film?], MediaType), FilmServiceError> {
+        let mediaType: MediaType = endpoint.contains("movie") ? .movie : .tv
 
-    func fetch(endpoint: String) -> AnyPublisher<[Film], FilmServiceError> {
         guard let url = URL(string: "\(Constants.baseUrl)/\(endpoint)?api_key=\(Constants.apiToken)&language=pt-BR&page=1") else {
             return Fail(error: FilmServiceError.invalidURL).eraseToAnyPublisher()
         }
@@ -29,17 +31,24 @@ final class FilmService: FilmServiceProtocol {
                 return data
             }
             .decode(type: MovieResponse.self, decoder: JSONDecoder())
-            .map { response in
-                response.results.map { movie in
-                    guard let id = movie.id,
-                          let title = movie.title ?? movie.name,
-                          let posterPath = movie.poster_path else {
-                        return Film(id: nil, title: nil, posterURL: nil, name: nil)
-                    }
-                    return Film(id: id, title: title, posterURL: Constants.imageBaseURL + posterPath, name: title)
+            .compactMap { movieResponse in
+                movieResponse.results.compactMap { movie in
+                    let director = movie.credits?.crew?.first(where: {$0.job == "Director"})?.name ?? String()
+                    return Film(id: movie.id,
+                                title: movie.title ?? movie.name,
+                                posterURL: Constants.imageBaseURL + (movie.poster_path ?? String()),
+                                name: movie.title ?? movie.name,
+                                overview: movie.overview,
+                                originalTitle: movie.original_title,
+                                numberOfEpisodes: movie.number_of_episodes,
+                                releaseDate: movie.release_date,
+                                productionCountries: movie.production_countries,
+                                director: director,
+                                cast: movie.credits?.cast)
                 }
             }
-            .mapError { error in
+            .map { (films) in (films, mediaType) }
+            .mapError { error -> FilmServiceError in
                 if let filmError = error as? FilmServiceError {
                     return filmError
                 } else if error is DecodingError {
@@ -57,47 +66,69 @@ final class FilmService: FilmServiceProtocol {
             fetch(endpoint: "tv/popular"),
             fetch(endpoint: "movie/now_playing")
         )
-        .map { movies, series, cinemas in
-            [
-                HomeSection(title: "Filmes Populares", films: movies),
-                HomeSection(title: "Séries Populares", films: series),
-                HomeSection(title: "Filmes em Cartaz", films: cinemas)
+        .map { (popularMoviesTuple, popularSeriesTuple, nowPlayingMoviesTuple) in
+            let (popularMovies, popularMoviesType) = popularMoviesTuple
+            let (popularSeries, popularSeriesType) = popularSeriesTuple
+            let (nowPlayingMovies, nowPlayingMoviesType) = nowPlayingMoviesTuple
+
+            return [
+                HomeSection(title: "Filmes Populares", films: popularMovies, mediaType: popularMoviesType),
+                HomeSection(title: "Séries Populares", films: popularSeries, mediaType: popularSeriesType),
+                HomeSection(title: "Filmes em Cartaz", films: nowPlayingMovies, mediaType: nowPlayingMoviesType)
             ]
         }
         .eraseToAnyPublisher()
     }
     
-    func fetchMovie(id: Int) -> AnyPublisher<Film, FilmServiceError> {
-        guard let url = URL(string: "\(Constants.baseUrl)/movie/\(id)?api_key=\(Constants.apiToken)&language=pt-BR") else {
-                return Fail(error: FilmServiceError.invalidURL).eraseToAnyPublisher()
-            }
+    func fetchDetails(id: Int, type: MediaType) -> AnyPublisher<Film?, FilmServiceError> {
+        let endpoint: String
+        switch type {
+        case .movie:
+            endpoint = "movie/\(id)"
+        case .tv:
+            endpoint = "tv/\(id)"
+        case .none:
+            endpoint = String()
+        }
 
-            return URLSession.shared.dataTaskPublisher(for: url)
-                .tryMap { data, response in
-                    guard let httpResponse = response as? HTTPURLResponse,
-                          200..<300 ~= httpResponse.statusCode else {
-                        throw FilmServiceError.apiError(URLError(.badServerResponse))
-                    }
-                    return data
+        guard let url = URL(string: "\(Constants.baseUrl)/\(endpoint)?api_key=\(Constants.apiToken)&language=pt-BR") else {
+            return Fail(error: FilmServiceError.invalidURL).eraseToAnyPublisher()
+        }
+
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .tryMap { data, response in
+                guard let httpResponse = response as? HTTPURLResponse,
+                      200..<300 ~= httpResponse.statusCode else {
+                    throw FilmServiceError.apiError(URLError(.badServerResponse))
                 }
-                .decode(type: Film.self, decoder: JSONDecoder())
-                .compactMap { movie in
-                    guard let id = movie.id,
-                          let title = movie.title ?? movie.name,
-                          let posterPath = movie.posterURL else {
-                        return nil
-                    }
-                    return Film(id: id, title: title, posterURL: Constants.imageBaseURL + posterPath, name: title)
+                return data
+            }
+            .decode(type: Movie.self, decoder: JSONDecoder())
+            .map { movie in
+                let director = movie.credits?.crew?.first(where: {$0.job == "Director"})?.name
+                return Film(
+                    id: id,
+                    title: movie.title,
+                    posterURL: Constants.imageBaseURL + (movie.poster_path ?? String()),
+                    name: movie.name ?? movie.title,
+                    overview: movie.overview,
+                    originalTitle: movie.original_title,
+                    numberOfEpisodes: movie.number_of_episodes,
+                    releaseDate: movie.release_date,
+                    productionCountries: movie.production_countries,
+                    director: director ?? String(),
+                    cast: movie.credits?.cast
+                )
+            }
+            .mapError { error -> FilmServiceError in
+                if let filmError = error as? FilmServiceError {
+                    return filmError
+                } else if error is DecodingError {
+                    return FilmServiceError.decodingError(error)
+                } else {
+                    return FilmServiceError.apiError(error)
                 }
-                .mapError { error -> FilmServiceError in
-                    if let filmError = error as? FilmServiceError {
-                        return filmError
-                    } else if error is DecodingError {
-                        return FilmServiceError.decodingError(error)
-                    } else {
-                        return FilmServiceError.apiError(error)
-                    }
-                }
-                .eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
         }
 }

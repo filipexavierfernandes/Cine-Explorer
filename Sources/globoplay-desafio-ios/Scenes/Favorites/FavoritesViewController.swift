@@ -43,11 +43,6 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
         viewModel.fetchFavorites()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        viewModel.fetchFavorites() // Recarrega os favoritos quando a view aparece
-    }
-
     private func setupView() {
         view.backgroundColor = Colors.midGray
         view.addSubview(collectionView)
@@ -89,7 +84,9 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let film = viewModel.favoriteFilms[indexPath.row]
-        let detailViewModel = DetailViewModel(filmId: film.id ?? .zero, filmService: FilmService(), favoritesService: FavoritesService())
+        let favoriteItems = FavoritesService().getFavorites()
+        let mediaType = favoriteItems.first { $0.id == film.id }?.mediaType ?? .movie
+        let detailViewModel = DetailViewModel(filmId: film.id ?? .zero, mediaType: mediaType, filmService: FilmService(), favoritesService: FavoritesService())
         let detailViewController = DetailViewController(viewModel: detailViewModel)
         navigationController?.pushViewController(detailViewController, animated: true)
     }

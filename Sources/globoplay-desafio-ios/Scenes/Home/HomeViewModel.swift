@@ -43,8 +43,8 @@ class HomeViewModel: ObservableObject {
         coordinator.navigateToFavorites()
     }
     
-    func navigateToDetails(id: Int) {
-        coordinator.navigateToDetails(id: id)
+    func navigateToDetails(id: Int, mediaType: MediaType) {
+        coordinator.navigateToDetails(id: id, mediaType: mediaType)
     }
 }
 

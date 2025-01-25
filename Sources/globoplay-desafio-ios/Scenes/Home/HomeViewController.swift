@@ -203,8 +203,10 @@ extension HomeViewController: UICollectionViewDataSource {
 extension HomeViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if !isLoading {
-            let selected = viewModel?.sections[indexPath.section].films[indexPath.row]
-            self.viewModel?.navigateToDetails(id: selected?.id ?? .zero)
+            let section =  viewModel?.sections[indexPath.section]
+            let selected = section?.films[indexPath.row]
+            let mediaType = section?.mediaType ?? .none
+            self.viewModel?.navigateToDetails(id: selected?.id ?? .zero, mediaType: mediaType)
         }
     }
 }

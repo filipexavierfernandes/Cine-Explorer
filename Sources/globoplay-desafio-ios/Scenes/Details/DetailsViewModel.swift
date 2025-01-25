@@ -13,12 +13,14 @@ class DetailViewModel: ObservableObject {
     @Published var isFavorite: Bool = false
     @Published var error: FilmServiceError?
     let filmId: Int
+    let mediaType: MediaType
     private let filmService: FilmService
     private let favoritesService: FavoritesService
     private var cancellables = Set<AnyCancellable>()
     
-    init(filmId: Int, filmService: FilmService, favoritesService: FavoritesService) {
+    init(filmId: Int, mediaType: MediaType, filmService: FilmService, favoritesService: FavoritesService) {
         self.filmId = filmId
+        self.mediaType = mediaType
         self.filmService = filmService
         self.favoritesService = favoritesService
         checkIfIsFavorite()
@@ -26,7 +28,7 @@ class DetailViewModel: ObservableObject {
     }
     
     private func fetchFilmDetails() {
-        filmService.fetchMovie(id: filmId)
+        filmService.fetchDetails(id: filmId, type: mediaType)
             .sink { completion in
                 switch completion {
                 case .failure(let error):
@@ -42,14 +44,14 @@ class DetailViewModel: ObservableObject {
 
     func toggleFavorite() {
         if isFavorite {
-            favoritesService.removeFavorite(itemId: filmId)
+            favoritesService.removeFavorite(itemId: filmId, mediaType: mediaType)
         } else {
-            favoritesService.saveFavorite(itemId: filmId)
+            favoritesService.saveFavorite(itemId: filmId, mediaType: mediaType)
         }
         isFavorite.toggle()
     }
     
     private func checkIfIsFavorite(){
-        isFavorite = favoritesService.isFavorite(itemId: filmId)
+        isFavorite = favoritesService.isFavorite(itemId: filmId, mediaType: mediaType)
     }
 }

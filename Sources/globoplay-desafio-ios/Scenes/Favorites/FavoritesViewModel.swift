@@ -21,11 +21,11 @@ class FavoritesViewModel: ObservableObject {
     }
 
     func fetchFavorites() {
-        let favoriteIds = favoritesService.getFavorites().map { $0.id }
+        let favoriteItems = favoritesService.getFavorites()
         favoriteFilms = []
         
-        favoriteIds.forEach { id in
-            filmService.fetchMovie(id: id)
+        favoriteItems.forEach { item in
+            filmService.fetchDetails(id: item.id, type: item.mediaType)
                 .sink { completion in
                     switch completion {
                     case .failure(let error):
@@ -35,7 +35,8 @@ class FavoritesViewModel: ObservableObject {
                         break
                     }
                 } receiveValue: { [weak self] film in
-                    self?.favoriteFilms.append(film)
+                    guard let favFilm = film else { return }
+                    self?.favoriteFilms.append(favFilm)
                 }.store(in: &cancellables)
         }
     }
