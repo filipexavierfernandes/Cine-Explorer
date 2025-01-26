@@ -12,36 +12,7 @@ class HomeViewController: UIViewController {
     
     private var viewModel: HomeViewModel?
     private var cancellables = Set<AnyCancellable>()
-    
-    private let headerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = Colors.darkGray
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Home"
-        label.textColor = .white
-        label.font = UIFont.boldSystemFont(ofSize: 24)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private lazy var favoritesButton: UIButton = {
-        let button = UIButton(type: .system)
-        
-        let image = UIImage(named: "star")
-        button.setImage(image, for: .normal)
-        button.tintColor = .white
-        button.setTitleColor(.white, for: .normal)
-        button.addTarget(self, action: #selector(favoritesButtonTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        return button
-    }()
+    private var searchController: UISearchController?
     
     private lazy var collectionView: UICollectionView = {
         let layout = createCompositionalLayout()
@@ -80,29 +51,27 @@ class HomeViewController: UIViewController {
         setupUI()
         bindViewModel()
         viewModel?.fetchData()
+        
+        searchController = UISearchController(searchResultsController: nil)
+        searchController?.obscuresBackgroundDuringPresentation = false
+        searchController?.searchBar.placeholder = "Buscar filmes"
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
+        searchController?.searchBar.delegate = self
+        searchController?.searchBar.showsCancelButton = true
+
+        navigationItem.title = "globoplay"
+
+        let favoriteButton = UIBarButtonItem(image: UIImage(systemName: "star"), style: .plain, target: self, action: #selector(favoritesButtonTapped))
+        navigationItem.rightBarButtonItem = favoriteButton
     }
     
     private func setupUI() {
         view.backgroundColor = .darkGray
-        
-        view.addSubview(headerView)
-        headerView.addSubview(titleLabel)
-        headerView.addSubview(favoritesButton)
         view.addSubview(collectionView)
         
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 60),
-            
-            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            
-            favoritesButton.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            favoritesButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            
-            collectionView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
@@ -114,6 +83,13 @@ class HomeViewController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.isLoading = false
+                self?.collectionView.reloadData()
+            }
+            .store(in: &cancellables)
+        
+        viewModel?.$filteredMovies
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
                 self?.collectionView.reloadData()
             }
             .store(in: &cancellables)
@@ -152,15 +128,22 @@ class HomeViewController: UIViewController {
     }
 }
 
-
 // MARK: - UICollectionViewDataSource
 extension HomeViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return isLoading ? 3 : viewModel?.sections.count ?? 0
+        if isLoading {
+          return 3
+        } else {
+            return viewModel?.isSearching ?? false ? 1 : viewModel?.sections.count ?? 0
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return isLoading ? 5 : viewModel?.sections[section].media.count ?? 0
+        if isLoading {
+            return 5
+        } else {
+            return viewModel?.isSearching ?? false ? viewModel?.filteredMovies.count ?? 0 : viewModel?.sections[section].media.count ?? 0
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -173,17 +156,26 @@ extension HomeViewController: UICollectionViewDataSource {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FilmCell.reuseIdentifier, for: indexPath) as? FilmCell else {
                 return UICollectionViewCell()
             }
-
-            guard let mediaDetails = viewModel?.sections[indexPath.section].media[indexPath.row] else {
-                return UICollectionViewCell()
+            
+            if viewModel?.isSearching ?? false {
+                guard let mediaDetails = viewModel?.filteredMovies[indexPath.row] else {
+                    return UICollectionViewCell()
+                }
+                cell.configure(with: mediaDetails)
+                return cell
+            } else {
+                
+                guard let mediaDetails = viewModel?.sections[indexPath.section].media[indexPath.row] else {
+                    return UICollectionViewCell()
+                }
+                switch mediaDetails {
+                case .movie(let movie):
+                    cell.configure(with: movie)
+                case .tvShow(let tvShow):
+                    cell.configure(with: tvShow)
+                }
+                return cell
             }
-            switch mediaDetails {
-            case .movie(let movie):
-                cell.configure(with: movie)
-            case .tvShow(let tvShow):
-                cell.configure(with: tvShow)
-            }
-            return cell
         }
     }
 
@@ -226,6 +218,20 @@ extension HomeViewController: UICollectionViewDelegate {
             
             
         }
+    }
+}
+
+extension HomeViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let searchText = searchBar.text else { return }
+        viewModel?.searchMovies(query: searchText)
+        searchBar.resignFirstResponder()
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = nil
+        viewModel?.endSearch()
+        searchBar.resignFirstResponder()
     }
 }
 

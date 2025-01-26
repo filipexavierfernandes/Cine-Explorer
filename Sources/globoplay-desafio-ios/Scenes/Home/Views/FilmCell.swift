@@ -15,7 +15,6 @@ class FilmCell: UICollectionViewCell {
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = 8
         imageView.clipsToBounds = true
         return imageView
     }()

@@ -78,6 +78,11 @@ class DetailViewModel: ObservableObject {
             return tvShow.id ?? 0
         }
     }
+    
+    func showDetailsFromRelated(for mediaDetails: MediaDetails) {
+        let id = getMediaId(from: mediaDetails)
+        coordinator.navigateToDetails(id: id, mediaType: self.mediaType)
+    }
 
     func toggleFavorite() {
         if isFavorite {

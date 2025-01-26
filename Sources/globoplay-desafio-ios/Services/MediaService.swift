@@ -11,6 +11,7 @@ import Combine
 protocol MediaServiceProtocol {
     func fetchData() -> AnyPublisher<[HomeSection], FilmServiceError>
     func fetchDetails(id: Int, type: MediaType) -> AnyPublisher<MediaDetails, FilmServiceError>
+    func searchMovies(query: String) -> AnyPublisher<MovieSearchResponse, Error>
 }
 
 final class MediaService: MediaServiceProtocol {
@@ -174,6 +175,61 @@ final class MediaService: MediaServiceProtocol {
             .eraseToAnyPublisher()
     }
     
+    func fetchTrailerURL(for id: Int, mediaType: MediaType) -> AnyPublisher<URL?, TrailerError> {
+        guard let url = URL(string: "\(Constants.baseUrl)/\(mediaType == .movie ? "movie" : "tv")/\(id)/videos?api_key=\(Constants.apiToken)&language=pt-BR") else {
+            return Fail(error: TrailerError.networkError(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "URL inválida"]))).eraseToAnyPublisher()
+        }
+
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .map(\.data)
+            .decode(type: VideosResponse.self, decoder: JSONDecoder())
+            .map { response -> URL? in
+                if let trailer = response.results.first(where: { $0.type == "Trailer" && $0.site == "YouTube" }) {
+                    if let urlString = "\(Constants.urlBaseYoutube)=\(trailer.key)"
+                        .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                        let url = URL(string: urlString) {
+                        return url
+                    } else {
+                        print("Erro ao criar a URL codificada")
+                        return nil
+                    }
+                } else {
+                    return nil
+                }
+            }
+            .mapError { error -> TrailerError in
+                switch error {
+                case is URLError:
+                    return .networkError(error)
+                default:
+                    return .decodingError(error)
+                }
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    func searchMovies(query: String) -> AnyPublisher<MovieSearchResponse, Error> {
+        guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return Fail(error: NSError(domain: "InvalidQuery", code: 0, userInfo: nil)).eraseToAnyPublisher()
+        }
+        let urlString = "\(Constants.baseUrl)/search/movie?api_key=\(Constants.apiToken)&query=\(encodedQuery)&language=pt-BR"
+
+        guard let url = URL(string: urlString) else {
+            return Fail(error: NSError(domain: "InvalidURL", code: 0, userInfo: nil)).eraseToAnyPublisher()
+        }
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .tryMap { data, response in
+                guard let httpResponse = response as? HTTPURLResponse,
+                      200..<300 ~= httpResponse.statusCode else {
+                    throw URLError(.badServerResponse)
+                }
+                return data
+            }
+            .decode(type: MovieSearchResponse.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+    
     private func createMovieFromMedia(_ media: Media) -> Movie? {
         guard let id = media.id, let title = media.title ?? media.original_title, let overview = media.overview, let poster_path = media.poster_path, let release_date = media.release_date else { return nil }
         return Movie(id: id, title: title, original_title: media.original_title, overview: overview, poster_path: poster_path, release_date: release_date, production_countries: media.production_countries, genres: media.genres, runtime: nil, credits: media.credits)
@@ -183,5 +239,7 @@ final class MediaService: MediaServiceProtocol {
         guard let id = media.id, let name = media.name ?? media.original_name, let overview = media.overview, let poster_path = media.poster_path, let first_air_date = media.first_air_date else { return nil }
         return TVShow(id: id, name: name, original_name: media.original_name, overview: overview, poster_path: poster_path, first_air_date: first_air_date, production_countries: media.production_countries, genres: media.genres, number_of_episodes: nil, number_of_seasons: nil, created_by: nil, networks: nil, credits: media.credits)
     }
+    
+    
     
 }

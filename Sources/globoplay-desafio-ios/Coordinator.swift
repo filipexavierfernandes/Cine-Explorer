@@ -12,6 +12,7 @@ protocol CoordinatorProtocol: AnyObject {
     func navigateToFavorites()
     func navigateToDetails(id: Int, mediaType: MediaType)
     func popViewController()
+    func presentErrorAlert(message: String)
 }
 
 class Coordinator: CoordinatorProtocol {
@@ -39,7 +40,14 @@ class Coordinator: CoordinatorProtocol {
         navigationController.pushViewController(detailViewController, animated: true)
     }
     
+    func presentErrorAlert(message: String) {
+        let alert = UIAlertController(title: "Erro", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        navigationController.present(alert, animated: true)
+    }
+    
     func popViewController() {
         navigationController.popViewController(animated: true)
     }
+
 }

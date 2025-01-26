@@ -39,6 +39,7 @@ class FavoritesViewController: UIViewController, UICollectionViewDataSource, UIC
         super.viewDidLoad()
         setupView()
         bindViewModel()
+        self.title = "Minha Lista"
     }
     
     override func viewWillAppear(_ animated: Bool) {

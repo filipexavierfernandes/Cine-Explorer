@@ -119,8 +119,6 @@ class DetailsInfoView: UIView {
               let cast = credits.cast else {
             return "Não disponível"
         }
-
-        // Usando map para extrair os nomes e joined para concatenar
         let castNames = cast.map { $0.name ?? String() }.joined(separator: ", ")
         return castNames
     }

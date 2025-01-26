@@ -10,6 +10,8 @@ import Combine
 
 class HomeViewModel: ObservableObject {
     @Published var sections: [HomeSection] = []
+    @Published var filteredMovies: [Movie] = []
+    @Published var isSearching: Bool = false
     @Published var error: FilmServiceError?
     private var cancellables = Set<AnyCancellable>()
     private let service: MediaServiceProtocol
@@ -38,7 +40,34 @@ class HomeViewModel: ObservableObject {
             })
             .store(in: &cancellables)
     }
-
+    
+    func searchMovies(query: String) {
+        isSearching = !query.isEmpty
+        
+        if query.isEmpty {
+            filteredMovies = []
+            return
+        }
+        
+        service.searchMovies(query: query)
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                case .failure(let error):
+                    print("Erro na busca: \(error)")
+                case .finished:
+                    break
+                }
+            }, receiveValue: { [weak self] searchResponse in
+                self?.filteredMovies = searchResponse.results
+            })
+            .store(in: &cancellables)
+    }
+    
+    func endSearch() {
+        isSearching = false
+        filteredMovies = []
+    }
+    
     func navigateToFavorites() {
         coordinator.navigateToFavorites()
     }
