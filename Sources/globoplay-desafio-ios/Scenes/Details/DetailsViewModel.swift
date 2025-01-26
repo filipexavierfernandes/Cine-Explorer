@@ -53,19 +53,19 @@ class DetailViewModel: ObservableObject {
         guard let mediaDetails = self.mediaDetails else { return }
         let mediaId = getMediaId(from: mediaDetails)
         let mediaType = self.mediaType
-
         mediaService.fetchRelated(id: mediaId, type: mediaType)
             .receive(on: DispatchQueue.main)
             .sink { completion in
                 switch completion {
                 case .failure(let error):
-                    print("Erro ao buscar relacionados: \(error)")
+                    print("Erro ao buscar vídeos relacionados: \(error)")
                     self.relatedMediaError = error
                 case .finished:
                     print("Busca de relacionados finalizada")
                 }
             } receiveValue: { relatedMedia in
                 self.relatedMedia = relatedMedia
+                self.relatedMediaError = nil
             }
             .store(in: &cancellables)
     }

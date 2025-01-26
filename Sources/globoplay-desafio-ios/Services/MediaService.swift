@@ -31,7 +31,7 @@ final class MediaService: MediaServiceProtocol {
                 }
                 return data
             }
-            .decode(type: MediaResponse.self, decoder: JSONDecoder()) // Decode para MediaResponse
+            .decode(type: MediaResponse.self, decoder: JSONDecoder())
             .map { mediaResponse -> (media: [MediaDetails], mediaType: MediaType) in
                 let mediaDetailsArray = mediaResponse.results.compactMap { media -> MediaDetails? in
                         switch mediaType {
@@ -65,10 +65,10 @@ final class MediaService: MediaServiceProtocol {
             fetch(endpoint: "tv/popular"),
             fetch(endpoint: "movie/now_playing")
         )
-        .map { (popularMoviesTuple, popularSeriesTuple, nowPlayingMoviesTuple) in
-            let (popularMovies, popularMoviesType) = popularMoviesTuple
-            let (popularSeries, popularSeriesType) = popularSeriesTuple
-            let (nowPlayingMovies, nowPlayingMoviesType) = nowPlayingMoviesTuple
+        .map { (popularMoviesData, popularSeriesData, nowPlayingMoviesData) in
+            let (popularMovies, popularMoviesType) = popularMoviesData
+            let (popularSeries, popularSeriesType) = popularSeriesData
+            let (nowPlayingMovies, nowPlayingMoviesType) = nowPlayingMoviesData
 
             return [
                 HomeSection(title: "Filmes Populares", media: popularMovies, mediaType: popularMoviesType),
@@ -102,7 +102,7 @@ final class MediaService: MediaServiceProtocol {
                 }
                 return data
             }
-            .decode(type: Media.self, decoder: JSONDecoder()) // Decodifica para Media
+            .decode(type: Media.self, decoder: JSONDecoder())
             .map { media -> MediaDetails in
                 switch type {
                 case .movie:
@@ -176,34 +176,53 @@ final class MediaService: MediaServiceProtocol {
     }
     
     func fetchTrailerURL(for id: Int, mediaType: MediaType) -> AnyPublisher<URL?, TrailerError> {
-        guard let url = URL(string: "\(Constants.baseUrl)/\(mediaType == .movie ? "movie" : "tv")/\(id)/videos?api_key=\(Constants.apiToken)&language=pt-BR") else {
-            return Fail(error: TrailerError.networkError(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "URL inválida"]))).eraseToAnyPublisher()
+        func fetchTrailer(withLanguageFilter: Bool) -> AnyPublisher<URL?, TrailerError> {
+            let languageParameter = withLanguageFilter ? "&language=pt-BR" : ""
+            guard let url = URL(string: "\(Constants.baseUrl)/\(mediaType == .movie ? "movie" : "tv")/\(id)/videos?api_key=\(Constants.apiToken)\(languageParameter)") else {
+                return Fail(error: TrailerError.networkError(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "URL inválida"]))).eraseToAnyPublisher()
+            }
+
+            return URLSession.shared.dataTaskPublisher(for: url)
+                .tryMap { data, response -> Data in
+                    guard let httpResponse = response as? HTTPURLResponse else {
+                        throw TrailerError.networkError(NSError(domain: "HTTPError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Resposta HTTP inválida"]))
+                    }
+                    guard 200..<300 ~= httpResponse.statusCode else {
+                        let errorDescription = HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode)
+                        throw TrailerError.networkError(NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: errorDescription]))
+                    }
+                    return data
+                }
+                .decode(type: VideosResponse.self, decoder: JSONDecoder())
+                .map { response -> URL? in
+                    guard let results = response.results, let trailer = results.first(where: { $0.type == "Trailer" && $0.site == "YouTube" }) else { return nil }
+                    guard let urlString = "\(Constants.urlBaseYoutube)=\(trailer.key ?? "")".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                          let url = URL(string: urlString) else { return nil }
+                    return url
+                }
+                .mapError { error -> TrailerError in
+                    if let trailerError = error as? TrailerError {
+                        return trailerError
+                    } else if error is DecodingError {
+                        return .decodingError(error)
+                    } else if let urlError = error as? URLError {
+                        return .networkError(urlError)
+                    } else {
+                        return .networkError(error)
+                    }
+                }
+                .eraseToAnyPublisher()
         }
 
-        return URLSession.shared.dataTaskPublisher(for: url)
-            .map(\.data)
-            .decode(type: VideosResponse.self, decoder: JSONDecoder())
-            .map { response -> URL? in
-                if let trailer = response.results.first(where: { $0.type == "Trailer" && $0.site == "YouTube" }) {
-                    if let urlString = "\(Constants.urlBaseYoutube)=\(trailer.key)"
-                        .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                        let url = URL(string: urlString) {
-                        return url
-                    } else {
-                        print("Erro ao criar a URL codificada")
-                        return nil
-                    }
-                } else {
-                    return nil
-                }
+        return fetchTrailer(withLanguageFilter: true)
+            .catch { _ in
+              Just<URL?>.init(nil)
             }
-            .mapError { error -> TrailerError in
-                switch error {
-                case is URLError:
-                    return .networkError(error)
-                default:
-                    return .decodingError(error)
+            .flatMap { urlWithLanguage -> AnyPublisher<URL?, TrailerError> in
+                guard urlWithLanguage == nil else {
+                  return Just(urlWithLanguage).setFailureType(to: TrailerError.self).eraseToAnyPublisher()
                 }
+                return fetchTrailer(withLanguageFilter: false)
             }
             .eraseToAnyPublisher()
     }

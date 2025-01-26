@@ -93,6 +93,16 @@ class HomeViewController: UIViewController {
                 self?.collectionView.reloadData()
             }
             .store(in: &cancellables)
+        
+        viewModel?.$error
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] error in
+                guard let error = error else { return }
+                let alert = UIAlertController(title: "Erro", message: "Desculpe pelo incômodo", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self?.present(alert, animated: true)
+            }
+            .store(in: &cancellables)
     }
     
     @objc private func favoritesButtonTapped() {

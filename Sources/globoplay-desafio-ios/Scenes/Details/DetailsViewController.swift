@@ -150,7 +150,6 @@ class DetailViewController: UIViewController {
         headerView.addSubview(headerImageView)
         headerView.addSubview(contentAboveView)
         
-        //contentView.addSubview(contentAboveView)
         contentAboveView.addSubview(solidImageView)
         contentAboveView.addSubview(titleLabel)
         contentAboveView.addSubview(subtitleLabel)
@@ -161,7 +160,6 @@ class DetailViewController: UIViewController {
         contentView.addSubview(segmentedControl)
         contentView.addSubview(containerView)
 
-        // Configurando constraints
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         headerView.translatesAutoresizingMaskIntoConstraints = false
@@ -289,7 +287,7 @@ class DetailViewController: UIViewController {
         hideLoadingIndicator()
 
         switch segmentedControl.selectedSegmentIndex {
-        case 0: // Relacionados
+        case 0:
             if relatedFilmsView == nil {
                 relatedFilmsView = RelatedFilmsView()
                 relatedFilmsView?.delegate = self
@@ -297,12 +295,13 @@ class DetailViewController: UIViewController {
                 currentView = relatedFilmsView
                 addCurrentToContainer()
                 viewModel.fetchRelatedMedia()
+                relatedFilmsView?.configure(with: [], hasRelatedVideos: false, isLoading: true)
             } else {
                 currentView?.removeFromSuperview()
                 currentView = relatedFilmsView
                 addCurrentToContainer()
             }
-        case 1: // Detalhes
+        case 1:
             if detailsView == nil {
                 detailsView = DetailsInfoView()
                 currentView?.removeFromSuperview()
@@ -439,7 +438,7 @@ class DetailViewController: UIViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] relatedMedia in
                 guard let self = self else { return }
-                self.relatedFilmsView?.configure(with: relatedMedia)
+                self.relatedFilmsView?.configure(with: relatedMedia, hasRelatedVideos: !relatedMedia.isEmpty, isLoading: false)
                 self.updateCurrentView()
             }
             .store(in: &cancellables)

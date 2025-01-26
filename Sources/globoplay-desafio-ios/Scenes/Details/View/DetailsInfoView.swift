@@ -13,8 +13,8 @@ class DetailsInfoView: UIView {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 8
-        stackView.alignment = .fill // Alinha ao preenchimento (stretch)
-        stackView.distribution = .fill // Distribui o espaço igualmente
+        stackView.alignment = .fill
+        stackView.distribution = .fill
         return stackView
     }()
 
@@ -44,17 +44,17 @@ class DetailsInfoView: UIView {
         NSLayoutConstraint.activate([
             titleHeader.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 16),
             titleHeader.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 16),
-            titleHeader.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -16), // Constraint correto: -16
+            titleHeader.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -16),
 
             stackView.topAnchor.constraint(equalTo: titleHeader.bottomAnchor, constant: 16),
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16), // Constraint correto: -16
-            stackView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -16) // Importante para o scroll funcionar
+            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            stackView.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -16)
         ])
     }
 
     func configure(with movie: Movie) {
-        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() } // Limpa as subviews antigas
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         let directorName = getDirectorName(from: movie)
         addLabel(withTitle: "Direção", value: directorName)
@@ -72,7 +72,7 @@ class DetailsInfoView: UIView {
     }
 
     func configure(with tvShow: TVShow) {
-        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() } // Limpa as subviews antigas
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         if let createdBy = tvShow.created_by?.map({ $0.name ?? String() }).joined(separator: ", ") {
             addLabel(withTitle: "Criado por", value: createdBy)
@@ -95,15 +95,15 @@ class DetailsInfoView: UIView {
         titleLabel.font = .boldSystemFont(ofSize: 17)
         titleLabel.textColor = UIColor(hex: "#D3D3D3")
         titleLabel.text = "\(title):"
-        titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal) // Prioridade alta para não esticar
+        titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
 
         let valueLabel = UILabel()
         valueLabel.font = .systemFont(ofSize: 16)
         valueLabel.textColor = UIColor(hex: "#D3D3D3")
         valueLabel.text = "\(value)"
         valueLabel.numberOfLines = 0
-        valueLabel.setContentHuggingPriority(.defaultLow, for: .horizontal) // Prioridade baixa para esticar
-        valueLabel.setContentCompressionResistancePriority(.required, for: .vertical) // Impede compressão vertical
+        valueLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        valueLabel.setContentCompressionResistancePriority(.required, for: .vertical)
 
         let horizontalStackView = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
         horizontalStackView.axis = .horizontal

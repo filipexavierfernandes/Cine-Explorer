@@ -53,6 +53,7 @@ class HomeViewModel: ObservableObject {
                 switch completion {
                 case .failure(let error):
                     print("Erro na busca: \(error)")
+                    self.error = error
                 case .finished:
                     break
                 }

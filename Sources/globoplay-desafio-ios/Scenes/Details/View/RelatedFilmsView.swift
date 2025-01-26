@@ -19,6 +19,24 @@ class RelatedFilmsView: UIView, UICollectionViewDataSource, UICollectionViewDele
             collectionView.reloadData()
         }
     }
+    
+    private let messageLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Nenhum filme relacionado encontrado."
+        label.textColor = Colors.icedWhite
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.hidesWhenStopped = true
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
+    }()
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -46,18 +64,31 @@ class RelatedFilmsView: UIView, UICollectionViewDataSource, UICollectionViewDele
 
     private func setupView() {
         addSubview(collectionView)
+        addSubview(messageLabel)
+        addSubview(loadingIndicator)
         
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            collectionView.heightAnchor.constraint(equalToConstant: 600)
+            collectionView.heightAnchor.constraint(equalToConstant: relatedMedia.isEmpty ? 100 : 600),
+            
+            messageLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            messageLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            
+            loadingIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
 
-    func configure(with media: [MediaDetails]) {
+    func configure(with media: [MediaDetails], hasRelatedVideos: Bool, isLoading: Bool) {
         self.relatedMedia = media
+        messageLabel.isHidden = hasRelatedVideos || isLoading 
+        loadingIndicator.isHidden = !isLoading
+        isLoading ? loadingIndicator.startAnimating() : loadingIndicator.stopAnimating()
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
