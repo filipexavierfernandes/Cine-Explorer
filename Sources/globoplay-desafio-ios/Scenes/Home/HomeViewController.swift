@@ -87,7 +87,7 @@ class HomeViewController: UIViewController {
             }
             .store(in: &cancellables)
         
-        viewModel?.$filteredMovies
+        viewModel?.$filteredMedia
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.collectionView.reloadData()
@@ -142,7 +142,7 @@ extension HomeViewController: UICollectionViewDataSource {
         if isLoading {
             return 5
         } else {
-            return viewModel?.isSearching ?? false ? viewModel?.filteredMovies.count ?? 0 : viewModel?.sections[section].media.count ?? 0
+            return viewModel?.isSearching ?? false ? viewModel?.filteredMedia.count ?? 0 : viewModel?.sections[section].media.count ?? 0
         }
     }
 
@@ -158,10 +158,15 @@ extension HomeViewController: UICollectionViewDataSource {
             }
             
             if viewModel?.isSearching ?? false {
-                guard let mediaDetails = viewModel?.filteredMovies[indexPath.row] else {
+                guard let mediaDetails = viewModel?.filteredMedia[indexPath.row] else {
                     return UICollectionViewCell()
                 }
-                cell.configure(with: mediaDetails)
+                switch mediaDetails {
+                case .movie(let movie):
+                    cell.configure(with: movie)
+                case .tvShow(let tvShow):
+                    cell.configure(with: tvShow)
+                }
                 return cell
             } else {
                 
@@ -203,20 +208,28 @@ extension HomeViewController: UICollectionViewDataSource {
 extension HomeViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if !isLoading {
-            let section =  viewModel?.sections[indexPath.section]
-            let selected = section?.media[indexPath.row]
-            let mediaType = section?.mediaType ?? .none
-            
-            switch selected {
-            case .movie(let movie):
-                self.viewModel?.navigateToDetails(id: movie.id ?? .zero, mediaType: mediaType)
-            case .tvShow(let tvShow):
-                self.viewModel?.navigateToDetails(id: tvShow.id ?? .zero, mediaType: mediaType)
-            case .none:
-                break
+            if viewModel?.isSearching ?? false {
+                guard let media = viewModel?.filteredMedia[indexPath.row] else { return }
+                switch media {
+                case .movie(let movie):
+                    self.viewModel?.navigateToDetails(id: movie.id ?? .zero, mediaType: .movie)
+                case .tvShow(let tvShow):
+                    self.viewModel?.navigateToDetails(id: tvShow.id ?? .zero, mediaType: .tv)
+                }
+            } else {
+                let section =  viewModel?.sections[indexPath.section]
+                let selected = section?.media[indexPath.row]
+                let mediaType = section?.mediaType ?? .none
+                
+                switch selected {
+                case .movie(let movie):
+                    self.viewModel?.navigateToDetails(id: movie.id ?? .zero, mediaType: mediaType)
+                case .tvShow(let tvShow):
+                    self.viewModel?.navigateToDetails(id: tvShow.id ?? .zero, mediaType: mediaType)
+                case .none:
+                    break
+                }
             }
-            
-            
         }
     }
 }

@@ -458,7 +458,7 @@ class DetailViewController: UIViewController {
             case .movie(let movie):
                 trailerManager.playTrailer(for: movie.id ?? Int(), mediaType: .movie, from: self)
             case .tvShow(let tvShow):
-                trailerManager.playTrailer(for: tvShow.id ?? Int(), mediaType: .tvShow, from: self)
+                trailerManager.playTrailer(for: tvShow.id ?? Int(), mediaType: .tv, from: self)
         }
     }
         

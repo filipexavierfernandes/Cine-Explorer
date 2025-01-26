@@ -49,7 +49,7 @@ class FavoritesViewModel: ObservableObject {
         case .movie:
             mediaType = .movie
         case .tvShow:
-            mediaType = .tvShow
+            mediaType = .tv
         }
         coordinator.navigateToDetails(id: getMediaId(from: mediaDetails), mediaType: mediaType)
     }

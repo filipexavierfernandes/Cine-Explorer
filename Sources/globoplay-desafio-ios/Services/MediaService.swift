@@ -11,15 +11,15 @@ import Combine
 protocol MediaServiceProtocol {
     func fetchData() -> AnyPublisher<[HomeSection], FilmServiceError>
     func fetchDetails(id: Int, type: MediaType) -> AnyPublisher<MediaDetails, FilmServiceError>
-    func searchMovies(query: String) -> AnyPublisher<MovieSearchResponse, Error>
+    func searchMedia(query: String) -> AnyPublisher<[MediaDetails], FilmServiceError>
 }
 
 final class MediaService: MediaServiceProtocol {
     
-    func fetch(endpoint: String) -> AnyPublisher<(media: [MediaDetails], mediaType: MediaType), FilmServiceError> {
-        let mediaType: MediaType = endpoint.contains("movie") ? .movie : .tvShow
+    func fetch(endpoint: String,_ query: String = String()) -> AnyPublisher<(media: [MediaDetails], mediaType: MediaType), FilmServiceError> {
+        let mediaType: MediaType = endpoint.contains("movie") ? .movie : .tv
 
-        guard let url = URL(string: "\(Constants.baseUrl)/\(endpoint)?api_key=\(Constants.apiToken)&language=pt-BR&page=1") else {
+        guard let url = URL(string: "\(Constants.baseUrl)/\(endpoint)?api_key=\(Constants.apiToken)&\(query)&language=pt-BR&page=1") else {
             return Fail(error: FilmServiceError.invalidURL).eraseToAnyPublisher()
         }
 
@@ -38,7 +38,7 @@ final class MediaService: MediaServiceProtocol {
                         case .movie:
                             let movie = Movie(id: media.id, title: media.title, original_title: media.original_title, overview: media.overview, poster_path: media.poster_path, release_date: media.release_date, production_countries: media.production_countries, genres: media.genres, runtime: nil, credits: media.credits)
                             return .movie(movie)
-                        case .tvShow:
+                        case .tv:
                             let tvShow = TVShow(id: media.id, name: media.name, original_name: media.original_name, overview: media.overview, poster_path: media.poster_path, first_air_date: media.first_air_date, production_countries: media.production_countries, genres: media.genres, number_of_episodes: nil, number_of_seasons: nil, created_by: nil, networks: nil, credits: media.credits)
                             return .tvShow(tvShow)
                         default:
@@ -84,7 +84,7 @@ final class MediaService: MediaServiceProtocol {
         switch type {
         case .movie:
             endpoint = "movie/\(id)"
-        case .tvShow:
+        case .tv:
             endpoint = "tv/\(id)"
         case .none:
             return Fail(error: FilmServiceError.invalidURL).eraseToAnyPublisher()
@@ -107,7 +107,7 @@ final class MediaService: MediaServiceProtocol {
                 switch type {
                 case .movie:
                     return MediaDetails.movie(Movie(id: media.id, title: media.title, original_title: media.original_title, overview: media.overview, poster_path: media.poster_path, release_date: media.release_date, production_countries: media.production_countries, genres: media.genres, runtime: nil, credits: media.credits))
-                case .tvShow:
+                case .tv:
                     return MediaDetails.tvShow(TVShow(id: media.id, name: media.name, original_name: media.original_name, overview: media.overview, poster_path: media.poster_path, first_air_date: media.first_air_date, production_countries: media.production_countries, genres: media.genres, number_of_episodes: nil, number_of_seasons: nil, created_by: nil, networks: nil, credits: media.credits))
                 case .none:
                     fatalError("Unexpected media type none")
@@ -130,7 +130,7 @@ final class MediaService: MediaServiceProtocol {
         switch type {
         case .movie:
             endpoint = "movie/\(id)/similar"
-        case .tvShow:
+        case .tv:
             endpoint = "tv/\(id)/similar"
         case .none:
             return Just([]).setFailureType(to: FilmServiceError.self).eraseToAnyPublisher()
@@ -155,7 +155,7 @@ final class MediaService: MediaServiceProtocol {
                     case .movie:
                         guard let movie = self.createMovieFromMedia(media) else { return nil }
                         return .movie(movie)
-                    case .tvShow:
+                    case .tv:
                         guard let tvShow = self.createTVShowFromMedia(media) else { return nil }
                         return .tvShow(tvShow)
                     case .none:
@@ -208,26 +208,20 @@ final class MediaService: MediaServiceProtocol {
             .eraseToAnyPublisher()
     }
     
-    func searchMovies(query: String) -> AnyPublisher<MovieSearchResponse, Error> {
-        guard let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-            return Fail(error: NSError(domain: "InvalidQuery", code: 0, userInfo: nil)).eraseToAnyPublisher()
-        }
-        let urlString = "\(Constants.baseUrl)/search/movie?api_key=\(Constants.apiToken)&query=\(encodedQuery)&language=pt-BR"
+    func searchMedia(query: String) -> AnyPublisher<[MediaDetails], FilmServiceError> {
+        let moviesEndpoint = "search/movie"
+        let moviesQuery = "query=\(query)"
+        let tvShowsEndpoint = "search/tv"
+        let tvQuery = "query=\(query)"
 
-        guard let url = URL(string: urlString) else {
-            return Fail(error: NSError(domain: "InvalidURL", code: 0, userInfo: nil)).eraseToAnyPublisher()
+        return Publishers.Zip(
+            fetch(endpoint: moviesEndpoint, moviesQuery).map(\.media),
+            fetch(endpoint: tvShowsEndpoint, tvQuery).map(\.media)
+        )
+        .map { (movies, tvShows) -> [MediaDetails] in
+            return movies + tvShows
         }
-        return URLSession.shared.dataTaskPublisher(for: url)
-            .tryMap { data, response in
-                guard let httpResponse = response as? HTTPURLResponse,
-                      200..<300 ~= httpResponse.statusCode else {
-                    throw URLError(.badServerResponse)
-                }
-                return data
-            }
-            .decode(type: MovieSearchResponse.self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+        .eraseToAnyPublisher()
     }
     
     private func createMovieFromMedia(_ media: Media) -> Movie? {
@@ -240,6 +234,13 @@ final class MediaService: MediaServiceProtocol {
         return TVShow(id: id, name: name, original_name: media.original_name, overview: overview, poster_path: poster_path, first_air_date: first_air_date, production_countries: media.production_countries, genres: media.genres, number_of_episodes: nil, number_of_seasons: nil, created_by: nil, networks: nil, credits: media.credits)
     }
     
-    
-    
+    private func handleError(_ error: Error) -> FilmServiceError {
+        if let filmError = error as? FilmServiceError {
+            return filmError
+        } else if error is DecodingError {
+            return FilmServiceError.decodingError(error)
+        } else {
+            return FilmServiceError.apiError(error)
+        }
+    }
 }

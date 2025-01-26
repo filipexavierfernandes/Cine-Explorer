@@ -10,7 +10,7 @@ import Combine
 
 class HomeViewModel: ObservableObject {
     @Published var sections: [HomeSection] = []
-    @Published var filteredMovies: [Movie] = []
+    @Published var filteredMedia: [MediaDetails] = []
     @Published var isSearching: Bool = false
     @Published var error: FilmServiceError?
     private var cancellables = Set<AnyCancellable>()
@@ -43,13 +43,12 @@ class HomeViewModel: ObservableObject {
     
     func searchMovies(query: String) {
         isSearching = !query.isEmpty
-        
         if query.isEmpty {
-            filteredMovies = []
+            filteredMedia = []
             return
         }
-        
-        service.searchMovies(query: query)
+
+        service.searchMedia(query: query)
             .sink(receiveCompletion: { completion in
                 switch completion {
                 case .failure(let error):
@@ -57,15 +56,15 @@ class HomeViewModel: ObservableObject {
                 case .finished:
                     break
                 }
-            }, receiveValue: { [weak self] searchResponse in
-                self?.filteredMovies = searchResponse.results
+            }, receiveValue: { [weak self] media in
+                self?.filteredMedia = media
             })
             .store(in: &cancellables)
     }
     
     func endSearch() {
         isSearching = false
-        filteredMovies = []
+        filteredMedia = []
     }
     
     func navigateToFavorites() {

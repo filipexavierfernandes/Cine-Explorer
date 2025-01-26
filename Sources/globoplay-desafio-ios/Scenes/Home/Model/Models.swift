@@ -118,7 +118,7 @@ struct HomeSection {
 
 enum MediaType: String, Codable {
     case movie
-    case tvShow
+    case tv
     case none
 }
 
@@ -139,6 +139,8 @@ struct Video: Decodable {
 
 struct MovieSearchResponse: Codable {
     let results: [Movie]
-    let total_pages: Int
-    let total_results: Int
+}
+
+struct TVShowSearchResponse: Codable {
+    let results: [TVShow]
 }
