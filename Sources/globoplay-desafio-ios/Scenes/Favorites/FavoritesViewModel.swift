@@ -12,11 +12,11 @@ class FavoritesViewModel: ObservableObject {
     @Published var favoriteMedia: [MediaDetails] = []
     @Published var error: FilmServiceError?
     private let favoritesService: FavoritesService
-    private let mediaService: MediaService
+    private let mediaService: MediaServiceProtocol
     private var cancellables = Set<AnyCancellable>()
-    private var coordinator: Coordinator
+    private var coordinator: CoordinatorProtocol
     
-    init(favoritesService: FavoritesService, filmService: MediaService, coordinator: Coordinator) {
+    init(favoritesService: FavoritesService, filmService: MediaServiceProtocol, coordinator: CoordinatorProtocol) {
         self.favoritesService = favoritesService
         self.mediaService = filmService
         self.coordinator = coordinator

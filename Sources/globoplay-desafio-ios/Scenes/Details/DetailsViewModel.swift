@@ -17,12 +17,12 @@ class DetailViewModel: ObservableObject {
     @Published var relatedMediaError: FilmServiceError?
     
     let filmId: Int
-    private let mediaService: MediaService
+    private let mediaService: MediaServiceProtocol
     private let favoritesService: FavoritesService
     private var cancellables = Set<AnyCancellable>()
     private let coordinator: CoordinatorProtocol
 
-    init(filmId: Int, mediaType: MediaType, filmService: MediaService, favoritesService: FavoritesService, coordinator: CoordinatorProtocol) {
+    init(filmId: Int, mediaType: MediaType, filmService: MediaServiceProtocol, favoritesService: FavoritesService, coordinator: CoordinatorProtocol) {
         self.filmId = filmId
         self.mediaType = mediaType
         self.mediaService = filmService

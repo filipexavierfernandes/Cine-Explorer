@@ -10,9 +10,9 @@ import Combine
 
 class HomeViewController: UIViewController {
     
-    private var viewModel: HomeViewModel?
-    private var cancellables = Set<AnyCancellable>()
-    private var searchController: UISearchController?
+    var viewModel: HomeViewModel?
+    var cancellables = Set<AnyCancellable>()
+    var searchController: UISearchController?
     
     private lazy var collectionView: UICollectionView = {
         let layout = createCompositionalLayout()
@@ -64,6 +64,10 @@ class HomeViewController: UIViewController {
 
         let favoriteButton = UIBarButtonItem(image: UIImage(systemName: "star"), style: .plain, target: self, action: #selector(favoritesButtonTapped))
         navigationItem.rightBarButtonItem = favoriteButton
+    }
+    
+    func setViewModel(_ viewModel: HomeViewModel) {
+        self.viewModel = viewModel
     }
     
     private func setupUI() {
