@@ -72,10 +72,10 @@ class RelatedFilmsView: UIView, UICollectionViewDataSource, UICollectionViewDele
             collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            collectionView.heightAnchor.constraint(equalToConstant: relatedMedia.isEmpty ? 100 : 600),
+            collectionView.heightAnchor.constraint(equalToConstant: 600),
             
             messageLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            messageLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            messageLabel.topAnchor.constraint(equalTo: topAnchor, constant: 24),
             messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             

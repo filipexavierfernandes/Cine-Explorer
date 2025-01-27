@@ -23,10 +23,10 @@ class Coordinator: CoordinatorProtocol {
     }
     
     func start() {
-            let service = MediaService()
-            let homeViewController = HomeViewController(service: service, coordinator: self)
-            navigationController.pushViewController(homeViewController, animated: true)
-        }
+        let service = MediaService()
+        let homeViewController = HomeViewController(service: service, coordinator: self)
+        navigationController.pushViewController(homeViewController, animated: true)
+    }
 
     func navigateToFavorites() {
         let viewModel = FavoritesViewModel(favoritesService: FavoritesService(), filmService: MediaService(), coordinator: self)

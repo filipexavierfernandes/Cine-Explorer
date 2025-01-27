@@ -37,7 +37,7 @@ class HomeViewController: UIViewController {
         }
     }
     
-    init(service: MediaService, coordinator: Coordinator) {
+    init(service: MediaServiceProtocol, coordinator: CoordinatorProtocol) {
         self.viewModel = HomeViewModel(service: service, coordinator: coordinator)
         super.init(nibName: nil, bundle: nil)
     }

@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct MediaResponse: Codable {
+struct MediaResponse: Codable, Equatable {
     let results: [Media]
 }
 
-struct Media: Codable {
+struct Media: Codable, Equatable {
     let id: Int?
     let poster_path: String?
     let overview: String?
@@ -26,14 +26,9 @@ struct Media: Codable {
     let production_countries: [ProductionCountry]?
     let genres: [Genre]?
     let credits: Credits?
-
-    enum CodingKeys: String, CodingKey {
-        case id, poster_path, overview, popularity, media_type, title, name, original_title, original_name, release_date, first_air_date, production_countries, genres, credits
-    }
 }
 
-//model pra filmes
-struct Movie: Codable {
+struct Movie: Codable, Equatable {
     let id: Int?
     let title: String?
     let original_title: String?
@@ -44,14 +39,9 @@ struct Movie: Codable {
     let genres: [Genre]?
     let runtime: Int?
     let credits: Credits?
-
-    enum CodingKeys: String, CodingKey {
-        case id, title, original_title, overview, poster_path, release_date, production_countries, genres, runtime, credits
-    }
 }
 
-// model para Séries de TV
-struct TVShow: Codable {
+struct TVShow: Codable, Equatable {
     let id: Int?
     let name: String?
     let original_name: String?
@@ -65,70 +55,58 @@ struct TVShow: Codable {
     let created_by: [CreatedBy]?
     let networks: [Network]?
     let credits: Credits?
-
-    enum CodingKeys: String, CodingKey {
-        case id, name, original_name, overview, poster_path, first_air_date, production_countries, genres, number_of_episodes, number_of_seasons, created_by, networks, credits
-    }
 }
 
-// Modelo para Gêneros
-struct Genre: Codable {
+struct Genre: Codable, Equatable {
     let id: Int?
     let name: String?
 }
 
-// Modelo para Países de Produção
-struct ProductionCountry: Codable {
+struct ProductionCountry: Codable, Equatable {
     let name: String?
 }
 
-// Modelo para Créditos
-struct Credits: Codable {
+struct Credits: Codable, Equatable {
     let cast: [Cast]?
     let crew: [Crew]?
 }
 
-// Modelo para Elenco
-struct Cast: Codable {
+struct Cast: Codable, Equatable {
     let name: String?
     let profile_path: String?
 }
 
-// Modelo para Equipe
-struct Crew: Codable {
+struct Crew: Codable, Equatable {
     let name: String?
     let job: String?
 }
 
-// Modelo para Criadores de Série
-struct CreatedBy: Codable {
+struct CreatedBy: Codable, Equatable {
     let name: String?
 }
 
-// Modelo para Networks
-struct Network: Codable {
+struct Network: Codable, Equatable {
     let name: String?
 }
 
-// Modelo para a estrutura da home
-struct HomeSection {
+struct HomeSection: Equatable {
     let title: String
     let media: [MediaDetails]
     let mediaType: MediaType
 }
 
-enum MediaType: String, Codable {
+enum MediaType: String, Codable, Equatable {
     case movie
     case tv
     case none
 }
 
-enum MediaDetails {
+enum MediaDetails: Equatable {
     case movie(Movie)
     case tvShow(TVShow)
 }
 
-struct Video: Decodable {
+struct Video: Decodable, Equatable {
     let iso_639_1: String?
     let iso_3166_1: String?
     let name: String?
@@ -141,15 +119,15 @@ struct Video: Decodable {
     let id: String?
 }
 
-struct VideosResponse: Decodable {
+struct VideosResponse: Decodable, Equatable {
     let id: Int?
     let results: [Video]?
 }
 
-struct MovieSearchResponse: Codable {
+struct MovieSearchResponse: Codable, Equatable {
     let results: [Movie]
 }
 
-struct TVShowSearchResponse: Codable {
+struct TVShowSearchResponse: Codable, Equatable {
     let results: [TVShow]
 }

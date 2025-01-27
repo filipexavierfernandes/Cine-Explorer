@@ -7,20 +7,25 @@
 
 import Foundation
 import Combine
-import youtube_ios_player_helper
 
 protocol MediaServiceProtocol {
     func fetchData() -> AnyPublisher<[HomeSection], FilmServiceError>
     func fetchDetails(id: Int, type: MediaType) -> AnyPublisher<MediaDetails, FilmServiceError>
     func searchMedia(query: String) -> AnyPublisher<[MediaDetails], FilmServiceError>
+    func fetchRelated(id: Int, type: MediaType) -> AnyPublisher<[MediaDetails], FilmServiceError>
+    func fetchTrailerURL(for id: Int, mediaType: MediaType) -> AnyPublisher<URL?, TrailerError>
 }
 
 final class MediaService: MediaServiceProtocol {
     
+    private func makeURL(endpoint: String, query: String = "") -> URL? {
+        return URL(string: "\(Constants.baseUrl)/\(endpoint)?api_key=\(Constants.apiToken)&\(query)&language=pt-BR&page=1")
+    }
+    
     func fetch(endpoint: String,_ query: String = String()) -> AnyPublisher<(media: [MediaDetails], mediaType: MediaType), FilmServiceError> {
         let mediaType: MediaType = endpoint.contains("movie") ? .movie : .tv
 
-        guard let url = URL(string: "\(Constants.baseUrl)/\(endpoint)?api_key=\(Constants.apiToken)&\(query)&language=pt-BR&page=1") else {
+        guard let url = makeURL(endpoint: endpoint, query: query) else {
             return Fail(error: FilmServiceError.invalidURL).eraseToAnyPublisher()
         }
 
@@ -137,7 +142,7 @@ final class MediaService: MediaServiceProtocol {
             return Just([]).setFailureType(to: FilmServiceError.self).eraseToAnyPublisher()
         }
 
-        guard let url = URL(string: "\(Constants.baseUrl)/\(endpoint)?api_key=\(Constants.apiToken)&language=pt-BR&page=1") else {
+        guard let url = makeURL(endpoint: endpoint) else {
             return Fail(error: FilmServiceError.invalidURL).eraseToAnyPublisher()
         }
 
@@ -180,6 +185,7 @@ final class MediaService: MediaServiceProtocol {
 
         func fetchTrailer(withLanguageFilter: Bool) -> AnyPublisher<URL?, TrailerError> {
             let languageParameter = withLanguageFilter ? "&language=pt-BR" : ""
+            
             guard let url = URL(string: "\(Constants.baseUrl)/\(mediaType == .movie ? "movie" : "tv")/\(id)/videos?api_key=\(Constants.apiToken)\(languageParameter)") else {
                 return Fail(error: TrailerError.networkError(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey : "URL inválida"]))).eraseToAnyPublisher()
             }

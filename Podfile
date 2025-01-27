@@ -13,6 +13,7 @@ target 'globoplay-desafio-ios' do
 
     # Dependências de testes
     pod 'iOSSnapshotTestCase', '~> 8.0.0'
+    pod 'SnapshotTesting', '~> 1.9.0'
   end
 end
 
