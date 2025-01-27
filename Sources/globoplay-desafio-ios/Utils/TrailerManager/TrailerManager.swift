@@ -17,7 +17,7 @@ enum TrailerError: Error {
 }
 
 class TrailerManager {
-    private let mediaService = MediaService()
+    private let mediaService: MediaService
     private var cancellables = Set<AnyCancellable>()
 
     private func presentTrailer(for videoId: String, from viewController: UIViewController) {
@@ -25,6 +25,11 @@ class TrailerManager {
         trailerViewController.videoId = videoId
         let navigationController = UINavigationController(rootViewController: trailerViewController)
         viewController.present(navigationController, animated: true, completion: nil)
+    }
+    
+    init(mediaService: MediaService, cancellables: Set<AnyCancellable> = Set<AnyCancellable>()) {
+        self.mediaService = mediaService
+        self.cancellables = cancellables
     }
 
     func playTrailer(for mediaID: Int, mediaType: MediaType, from viewController: UIViewController) {

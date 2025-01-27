@@ -11,7 +11,8 @@ import SDWebImage
 
 class DetailViewController: UIViewController {
     private let viewModel: DetailViewModel
-    private var trailerManager: TrailerManager = TrailerManager()
+    private let mediaService = MediaService()
+    private lazy var trailerManager = TrailerManager(mediaService: mediaService)
     private var cancellables = Set<AnyCancellable>()
     
     // UI Elements
@@ -54,18 +55,30 @@ class DetailViewController: UIViewController {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.font = .boldSystemFont(ofSize: 20)
+        label.font = .boldSystemFont(ofSize: 24)
         label.textColor = .white
         label.textAlignment = .center
         label.numberOfLines = 0
+        
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowRadius = 3.0
+        label.layer.shadowOpacity = 0.5
+        label.layer.shadowOffset = CGSize(width: 1, height: 1)
+        label.layer.masksToBounds = false
         return label
     }()
 
     private let subtitleLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16)
-        label.textColor = .gray
+        label.font = .systemFont(ofSize: 18)
+        label.textColor = .white
         label.textAlignment = .center
+        
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowRadius = 3.0
+        label.layer.shadowOpacity = 0.5
+        label.layer.shadowOffset = CGSize(width: 1, height: 1)
+        label.layer.masksToBounds = false
         return label
     }()
 

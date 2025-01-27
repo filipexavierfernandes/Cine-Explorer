@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import youtube_ios_player_helper
 
 protocol MediaServiceProtocol {
     func fetchData() -> AnyPublisher<[HomeSection], FilmServiceError>
@@ -176,6 +177,7 @@ final class MediaService: MediaServiceProtocol {
     }
     
     func fetchTrailerURL(for id: Int, mediaType: MediaType) -> AnyPublisher<URL?, TrailerError> {
+
         func fetchTrailer(withLanguageFilter: Bool) -> AnyPublisher<URL?, TrailerError> {
             let languageParameter = withLanguageFilter ? "&language=pt-BR" : ""
             guard let url = URL(string: "\(Constants.baseUrl)/\(mediaType == .movie ? "movie" : "tv")/\(id)/videos?api_key=\(Constants.apiToken)\(languageParameter)") else {
@@ -195,9 +197,15 @@ final class MediaService: MediaServiceProtocol {
                 }
                 .decode(type: VideosResponse.self, decoder: JSONDecoder())
                 .map { response -> URL? in
-                    guard let results = response.results, let trailer = results.first(where: { $0.type == "Trailer" && $0.site == "YouTube" }) else { return nil }
-                    guard let urlString = "\(Constants.urlBaseYoutube)=\(trailer.key ?? "")".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                          let url = URL(string: urlString) else { return nil }
+                    guard let results = response.results,
+                          let trailer = results.first(where: { $0.type == "Trailer" && $0.site == "YouTube" }),
+                          let key = trailer.key else {
+                        return nil
+                    }
+                    guard let urlString = "\(Constants.urlBaseYoutube)=\(key)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+                          let url = URL(string: urlString) else {
+                        return nil
+                    }
                     return url
                 }
                 .mapError { error -> TrailerError in
@@ -215,13 +223,9 @@ final class MediaService: MediaServiceProtocol {
         }
 
         return fetchTrailer(withLanguageFilter: true)
-            .catch { _ in
-              Just<URL?>.init(nil)
-            }
+            .catch { _ in Just(nil).setFailureType(to: TrailerError.self) }
             .flatMap { urlWithLanguage -> AnyPublisher<URL?, TrailerError> in
-                guard urlWithLanguage == nil else {
-                  return Just(urlWithLanguage).setFailureType(to: TrailerError.self).eraseToAnyPublisher()
-                }
+                guard urlWithLanguage == nil else { return Just(urlWithLanguage).setFailureType(to: TrailerError.self).eraseToAnyPublisher() }
                 return fetchTrailer(withLanguageFilter: false)
             }
             .eraseToAnyPublisher()
