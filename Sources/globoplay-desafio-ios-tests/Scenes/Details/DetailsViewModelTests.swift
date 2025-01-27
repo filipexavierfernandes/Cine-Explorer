@@ -23,7 +23,6 @@ class DetailsViewModelTests: XCTestCase {
         favoritesServiceMock = FavoritesServiceMock()
         coordinatorMock = CoordinatorMock()
         
-        // Inicia o ViewModel com mock dos serviços
         viewModel = DetailViewModel(
             filmId: 1,
             mediaType: .movie,
