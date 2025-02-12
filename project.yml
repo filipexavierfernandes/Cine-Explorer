@@ -1,0 +1,42 @@
+name: globoplay-desafio-ios
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: '15.0'
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: '5.5'  # Ajuste para a sua versão do Swift
+
+targets:
+  globoplay-desafio-ios:
+    type: application
+    platform: iOS
+    sources: Sources/globoplay-desafio-ios
+    resources: Sources/globoplay-desafio-ios/Resources
+    settings:
+      base:
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_FILE: Sources/globoplay-desafio-ios/Info.plist
+        UILaunchStoryboardName: LaunchScreen
+
+  globoplay-desafio-ios-tests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: Sources/globoplay-desafio-ios-tests
+    settings:
+      base:
+        INFOPLIST_FILE: Sources/globoplay-desafio-ios-tests/Info.plist
+    dependencies:
+      - target: globoplay-desafio-ios
+
+schemes:
+  globoplay-desafio-ios:
+    build:
+      targets:
+        globoplay-desafio-ios: all
+  globoplay-desafio-ios-tests:
+    build:
+      targets:
+        globoplay-desafio-ios-tests: all
