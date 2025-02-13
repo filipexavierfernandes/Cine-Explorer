@@ -1,88 +1,66 @@
+## README
 
-# Globoplay Recrutamento 
+# Cine Explorer
 
----
-![JPG](https://lh3.googleusercontent.com/62viiAWxbh_4QQdbdZOeO53yDsq1jZu_KyQstDpbXgTryhTIjrPzW9nr0eFkMuoxs6wx=s180)
+## Aplicativo para visualização de filmes e séries
 
+## Visão Geral
 
-## Bem vindo
+Este aplicativo iOS permite aos usuários explorar o mundo do cinema e da televisão, oferecendo uma interface intuitiva para descobrir filmes e séries, visualizar detalhes, assistir trailers e gerenciar seus favoritos.
 
-Obrigado por participar do desafio do Globoplay! Estamos muito contentes pelo seu primeiro passo para fazer parte de um time excepcional. Você deverá criar um aplicativo sobre filmes, usando a [API](https://developers.themoviedb.org/3/getting-started/introduction) do [TheMovieDB](https://www.themoviedb.org/?language=en).
-Para termos um layout minimamente definido, anexamos alguns assets que vão te ajudar a desenvolver esse app:
+## Funcionalidades
 
-- [ScreenShots](assets/screenshots)
-- [Ícones](assets/icons)
+-   **Listagem de Filmes e Séries:** Navegue por uma extensa coleção de filmes e séries, organizados por categorias e gêneros.
+-   **Detalhes:** Acesse informações detalhadas sobre cada filme ou série, incluindo sinopse, elenco, classificação e muito mais.
+-   **Filmes Relacionados:** Descubra filmes e séries semelhantes àqueles que você gosta, expandindo suas opções de entretenimento.
+-   **Trailers:** Assista aos trailers dos seus filmes e séries favoritos para ter um gostinho do que está por vir.
+-   **Favoritos:** Marque filmes e séries como favoritos para acesso rápido e fácil.
+-   **Tela de Favoritos:** Visualize todos os seus filmes e séries favoritos em um só lugar, com a opção de removê-los da lista.
 
-Pense no desafio como uma oportunidade de mostrar todo o seu conhecimento. E faça com calma, você tem uma semana para entregar! Sua avaliação será baseada nos seguintes tópicos:
+## Arquitetura
 
-- Arquitetura
-- Consumo de APIs
-- GIT
-- Layout's
-- Fluxo de navegação.
+O aplicativo foi desenvolvido utilizando a arquitetura MVVM-C (Model-View-ViewModel-Coordinator), promovendo a separação de responsabilidades e facilitando a manutenção e escalabilidade do código.
 
-Não existe nenhum pré-requisito, portanto sinta-se a vontande para utilizar qualquer linguagem e usar ou não usar bibliotecas.
+## Tecnologias
 
-Sabemos que testes não é um tópico que todos dominam ou tem conhecimento, por isso aceitamos desafios de todos os perfis e diferentes níveis de conhecimento técnico. Mas nos preocupamos com a qualidade, saúde e evolução do produto e por isso acreditamos bastante em testes automatizados.
+-   **Linguagem:** Swift
+-   **Arquitetura:** MVVM-C
+-   **Gerenciamento de Dependências:** CocoaPods
+-   **Requisições:** Combine, URLSession
+-   **Carregamento de Imagens:** SDWebImage
+-   **Testes Unitários:** XCTest
+-   **Testes de Snapshot:** SnapshotTesting
 
+## Testes
 
-# Features
+O aplicativo possui testes unitários abrangentes para garantir a qualidade do código e o correto funcionamento das funcionalidades. Além disso, testes de snapshot foram implementados para validar a interface do usuário e garantir a consistência visual.
 
----
+## Melhorias Futuras
 
-### Essencial:
+-   Diminuir a complexidade na tela de favoritos usando swift comcurrence; Melhorias no design.
 
-- Tela de splash;
-- Listagem dos filmes;
-- Minha lista;
-- Detalhes do filme;
-- Favoritar/Desfavoritar filmes;
-- Layout estruturado;
-- Tratamento de erro.
+## Autor
 
+Filipe Xavier Fernandes
 
-### Ganha mais pontos se tiver:
+## Licença
 
-- Filtros;
-- Busca;
-- Paginação;
-- Animações;
-- Testes unitários;
-- Testes instrumentados;
-- Testes funcionais;
-- Pipeline Automatizado.
+MIT
 
+## Como Executar
 
-### Iremos ficar encantados:
-- Play do vídeo.
+1.  Clone este repositório.
+2.  Abra o projeto no Xcode.
+3.  Instale as configurações rodando o scritp setup.sh
+4.  Abra o projeto com open cine-explorer.xcworkspace
+5.  Rode o projeto e seja feliz.
 
+## Observações
 
-# Exemplos e sugestões
+-   Este aplicativo utiliza a API pública TMDB para obter os dados de filmes e séries.
+-   As imagens são carregadas de forma assíncrona utilizando a biblioteca SDWebImage.
 
----
+## Contato
 
-Nossos designers elaboraram algumas sugestões de telas e fluxos para guiar você durante o desenvolvimento, portanto fique à vontade para modificar como você quiser.
-Para facilitar o processo, existem assets, app icons, ícones e paleta de cores no repositório. Mas se o seu lado designer falar mais alto, pode nos surpreender!
+https://www.linkedin.com/in/filipe-xavier-fernandes/
 
-- [Splash](assets/screenshots/splash.png)
-- [Grid de filmes](assets/screenshots/home.jpg)
-- [Detalhes](assets/screenshots/highlights-details.jpg)
-- [Assista Também](assets/screenshots/highlights.jpg)
-- [Adicionar aos favoritos](assets/screenshots/highlights-favorited.jpg)
-- [Lista de Favoritos](assets/screenshots/my-list.jpg)
-
-
-## **Processo de entrega**
-
----
-
-Após finalizar a implementação do desafio, abra um pull request para este repositório seguindo os passos abaixo:
-
-1. Faça um fork deste repositório, não clone este repositório diretamente;
-2. Os commit's e as alterações devem ser feitas no **SEU** fork;
-3. Envie um Pull Request;
-4. Deixe o fork público para facilitar a inspeção do código.
-
-### **ATENÇÃO**
-
-Não faça push diretamente para este repositório!
