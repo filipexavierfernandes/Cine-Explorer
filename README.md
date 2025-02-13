@@ -10,26 +10,76 @@ Este aplicativo iOS permite aos usuários explorar o mundo do cinema e da televi
 
 ## Funcionalidades
 
--   **Listagem de Filmes e Séries:** Navegue por uma extensa coleção de filmes e séries, organizados por categorias e gêneros.
--   **Detalhes:** Acesse informações detalhadas sobre cada filme ou série, incluindo sinopse, elenco, classificação e muito mais.
--   **Filmes Relacionados:** Descubra filmes e séries semelhantes àqueles que você gosta, expandindo suas opções de entretenimento.
--   **Trailers:** Assista aos trailers dos seus filmes e séries favoritos para ter um gostinho do que está por vir.
--   **Favoritos:** Marque filmes e séries como favoritos para acesso rápido e fácil.
--   **Tela de Favoritos:** Visualize todos os seus filmes e séries favoritos em um só lugar, com a opção de removê-los da lista.
+Explore as principais funcionalidades do Cine Explorer em ação!
 
+### Listagem de Filmes e Séries
+
+Navegue por uma extensa coleção de filmes e séries, organizados por categorias e gêneros.
+
+![Home](Assets/1-home.png)
+
+*Legenda: Tela inicial com a lista de filmes e séries, destacando a organização por categorias.*
+
+### Detalhes
+
+Acesse informações detalhadas sobre cada filme ou série, incluindo sinopse, elenco, classificação e muito mais.
+
+![Detalhes](Assets/2-details.png)
+
+*Legenda: Tela de detalhes de um filme, com informações sobre sinopse, elenco e classificação.*
+
+### Filmes Relacionados
+
+Descubra filmes e séries semelhantes àqueles que você gosta, expandindo suas opções de entretenimento.
+
+![Relacionados](Assets/3-related.png)
+
+*Legenda: Tela com filmes relacionados ao filme visualizado, permitindo explorar novas opções.*
+
+### Favoritos
+
+Marque filmes e séries como favoritos para acesso rápido e fácil.
+
+![Favoritado](Assets/4-favorited.png)
+
+*Legenda: Tela de detalhes de filme adicionado aos favoritos, com destaque para o botão de adicionar/remover como estrela.*
+
+### Tela de Favoritos
+
+Visualize todos os seus filmes e séries favoritos em um só lugar, com a opção de removê-los da lista.
+
+![Lista de Favoritos](Assets/5-favorites-List.png)
+
+*Legenda: Tela com a lista de filmes e séries favoritos, com a opção de remover da lista.*
+
+### Trailers
+
+Assista aos trailers dos seus filmes e séries favoritos para ter um gostinho do que está por vir.
+
+![Trailer](Assets/6-trailer.png)
+
+*Legenda: Tela de exibição do trailer do filme, com controles de reprodução.*
+
+### Busca
+
+Encontre filmes e séries específicos rapidamente, utilizando a funcionalidade de busca.
+
+![Busca](Assets/7-search.png)
+
+*Legenda: Tela de busca de filmes e séries, com campo de texto para pesquisa e resultados da busca.*
 ## Arquitetura
 
 O aplicativo foi desenvolvido utilizando a arquitetura MVVM-C (Model-View-ViewModel-Coordinator), promovendo a separação de responsabilidades e facilitando a manutenção e escalabilidade do código.
 
 ## Tecnologias
 
--   **Linguagem:** Swift
+-   **Linguagem:** [Swift](https://www.swift.org/)
 -   **Arquitetura:** MVVM-C
--   **Gerenciamento de Dependências:** CocoaPods
--   **Requisições:** Combine, URLSession
--   **Carregamento de Imagens:** SDWebImage
--   **Testes Unitários:** XCTest
--   **Testes de Snapshot:** SnapshotTesting
+-   **Gerenciamento de Dependências:** [CocoaPods](https://cocoapods.org/)
+-   **Requisições:** [Combine](https://developer.apple.com/documentation/combine/), [URLSession](https://developer.apple.com/documentation/foundation/urlsession)
+-   **Carregamento de Imagens:** [SDWebImage](https://github.com/SDWebImage/SDWebImage)
+-   **Testes Unitários:** [XCTest](https://developer.apple.com/documentation/xctest)
+-   **Testes de Snapshot:** [SnapshotTesting](https://github.com/pointfreeco/swift-snapshot-testing)
 
 ## Testes
 
@@ -57,7 +107,9 @@ MIT
 
 ## Observações
 
--   Este aplicativo utiliza a API pública TMDB para obter os dados de filmes e séries.
+## Observações
+
+-   Este aplicativo utiliza a API pública [TMDB](https://www.themoviedb.org/documentation/api) para obter os dados de filmes e séries.
 -   As imagens são carregadas de forma assíncrona utilizando a biblioteca SDWebImage.
 
 ## Contato
