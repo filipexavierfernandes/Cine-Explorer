@@ -16,7 +16,7 @@ Explore as principais funcionalidades do Cine Explorer em ação!
 
 Navegue por uma extensa coleção de filmes e séries, organizados por categorias e gêneros.
 
-<img src="Assets/1-Home.png" width="600">
+<img src="Assets/1-home.png" width="400">
 
 *Legenda: Tela inicial com a lista de filmes e séries, destacando a organização por categorias.*
 
@@ -24,7 +24,7 @@ Navegue por uma extensa coleção de filmes e séries, organizados por categoria
 
 Acesse informações detalhadas sobre cada filme ou série, incluindo sinopse, elenco, classificação e muito mais.
 
-<img src="Assets/2-details.png" width="600">
+<img src="Assets/2-details.png" width="400">
 
 *Legenda: Tela de detalhes de um filme, com informações sobre sinopse, elenco e classificação.*
 
@@ -32,7 +32,7 @@ Acesse informações detalhadas sobre cada filme ou série, incluindo sinopse, e
 
 Descubra filmes e séries semelhantes àqueles que você gosta, expandindo suas opções de entretenimento.
 
-<img src="Assets/3-related.png" width="600">
+<img src="Assets/3-related.png" width="400">
 
 *Legenda: Tela com filmes relacionados ao filme visualizado, permitindo explorar novas opções.*
 
@@ -40,7 +40,7 @@ Descubra filmes e séries semelhantes àqueles que você gosta, expandindo suas 
 
 Marque filmes e séries como favoritos para acesso rápido e fácil.
 
-<img src="Assets/4-favorited.png" width="600">
+<img src="Assets/4-favorited.png" width="400">
 
 *Legenda: Tela de detalhes de filme adicionado aos favoritos, com destaque para o botão de adicionar/remover como estrela.*
 
@@ -48,7 +48,7 @@ Marque filmes e séries como favoritos para acesso rápido e fácil.
 
 Visualize todos os seus filmes e séries favoritos em um só lugar, com a opção de removê-los da lista.
 
-<img src="Assets/5-favorites-list.png" width="600">
+<img src="Assets/5-favorites-list.png" width="400">
 
 *Legenda: Tela com a lista de filmes e séries favoritos, com a opção de remover da lista.*
 
@@ -56,7 +56,7 @@ Visualize todos os seus filmes e séries favoritos em um só lugar, com a opçã
 
 Assista aos trailers dos seus filmes e séries favoritos para ter um gostinho do que está por vir.
 
-<img src="Assets/6-trailer.png" width="600">
+<img src="Assets/6-trailer.png" width="400">
 
 *Legenda: Tela de exibição do trailer do filme, com controles de reprodução.*
 
@@ -64,7 +64,7 @@ Assista aos trailers dos seus filmes e séries favoritos para ter um gostinho do
 
 Encontre filmes e séries específicos rapidamente, utilizando a funcionalidade de busca.
 
-<img src="Assets/7-search.png" width="600">
+<img src="Assets/7-search.png" width="400">
 
 *Legenda: Tela de busca de filmes e séries, com campo de texto para pesquisa e resultados da busca.*
 ## Arquitetura
